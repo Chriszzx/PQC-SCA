@@ -1,0 +1,2327 @@
+   1              		.cpu cortex-m4
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 6
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"polyvec.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.text.pqcrystals_dilithium2_refpolyvec_matrix_expand,"ax",%progbits
+  16              		.align	1
+  17              		.global	pqcrystals_dilithium2_refpolyvec_matrix_expand
+  18              		.arch armv7e-m
+  19              		.syntax unified
+  20              		.thumb
+  21              		.thumb_func
+  22              		.fpu softvfp
+  24              	pqcrystals_dilithium2_refpolyvec_matrix_expand:
+  25              	.LFB0:
+  26              		.file 1 "polyvec.c"
+   1:polyvec.c     **** #include <stdint.h>
+   2:polyvec.c     **** #include "params.h"
+   3:polyvec.c     **** #include "polyvec.h"
+   4:polyvec.c     **** #include "poly.h"
+   5:polyvec.c     **** 
+   6:polyvec.c     **** /*************************************************
+   7:polyvec.c     **** * Name:        expand_mat
+   8:polyvec.c     **** *
+   9:polyvec.c     **** * Description: Implementation of ExpandA. Generates matrix A with uniformly
+  10:polyvec.c     **** *              random coefficients a_{i,j} by performing rejection
+  11:polyvec.c     **** *              sampling on the output stream of SHAKE128(rho|j|i)
+  12:polyvec.c     **** *              or AES256CTR(rho,j|i).
+  13:polyvec.c     **** *
+  14:polyvec.c     **** * Arguments:   - polyvecl mat[K]: output matrix
+  15:polyvec.c     **** *              - const uint8_t rho[]: byte array containing seed rho
+  16:polyvec.c     **** **************************************************/
+  17:polyvec.c     **** void polyvec_matrix_expand(polyvecl mat[K], const uint8_t rho[SEEDBYTES]) {
+  27              		.loc 1 17 75
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 16
+  30              		@ frame_needed = 1, uses_anonymous_args = 0
+  31 0000 80B5     		push	{r7, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 7, -8
+  35              		.cfi_offset 14, -4
+  36 0002 84B0     		sub	sp, sp, #16
+  37              	.LCFI1:
+  38              		.cfi_def_cfa_offset 24
+  39 0004 00AF     		add	r7, sp, #0
+  40              	.LCFI2:
+  41              		.cfi_def_cfa_register 7
+  42 0006 7860     		str	r0, [r7, #4]
+  43 0008 3960     		str	r1, [r7]
+  18:polyvec.c     ****   unsigned int i, j;
+  19:polyvec.c     **** 
+  20:polyvec.c     ****   for(i = 0; i < K; ++i)
+  44              		.loc 1 20 9
+  45 000a 0023     		movs	r3, #0
+  46 000c FB60     		str	r3, [r7, #12]
+  47              		.loc 1 20 3
+  48 000e 1EE0     		b	.L2
+  49              	.L5:
+  21:polyvec.c     ****     for(j = 0; j < L; ++j)
+  50              		.loc 1 21 11
+  51 0010 0023     		movs	r3, #0
+  52 0012 BB60     		str	r3, [r7, #8]
+  53              		.loc 1 21 5
+  54 0014 15E0     		b	.L3
+  55              	.L4:
+  22:polyvec.c     ****       poly_uniform(&mat[i].vec[j], rho, (i << 8) + j);
+  56              		.loc 1 22 24 discriminator 3
+  57 0016 FB68     		ldr	r3, [r7, #12]
+  58 0018 1B03     		lsls	r3, r3, #12
+  59 001a 7A68     		ldr	r2, [r7, #4]
+  60 001c 1A44     		add	r2, r2, r3
+  61              		.loc 1 22 7 discriminator 3
+  62 001e BB68     		ldr	r3, [r7, #8]
+  63 0020 9B02     		lsls	r3, r3, #10
+  64 0022 D018     		adds	r0, r2, r3
+  65              		.loc 1 22 44 discriminator 3
+  66 0024 FB68     		ldr	r3, [r7, #12]
+  67 0026 9BB2     		uxth	r3, r3
+  68 0028 1B02     		lsls	r3, r3, #8
+  69 002a 9AB2     		uxth	r2, r3
+  70              		.loc 1 22 7 discriminator 3
+  71 002c BB68     		ldr	r3, [r7, #8]
+  72 002e 9BB2     		uxth	r3, r3
+  73 0030 1344     		add	r3, r3, r2
+  74 0032 9BB2     		uxth	r3, r3
+  75 0034 1A46     		mov	r2, r3
+  76 0036 3968     		ldr	r1, [r7]
+  77 0038 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_uniform
+  21:polyvec.c     ****     for(j = 0; j < L; ++j)
+  78              		.loc 1 21 23 discriminator 3
+  79 003c BB68     		ldr	r3, [r7, #8]
+  80 003e 0133     		adds	r3, r3, #1
+  81 0040 BB60     		str	r3, [r7, #8]
+  82              	.L3:
+  21:polyvec.c     ****     for(j = 0; j < L; ++j)
+  83              		.loc 1 21 5 discriminator 1
+  84 0042 BB68     		ldr	r3, [r7, #8]
+  85 0044 032B     		cmp	r3, #3
+  86 0046 E6D9     		bls	.L4
+  20:polyvec.c     ****     for(j = 0; j < L; ++j)
+  87              		.loc 1 20 21 discriminator 2
+  88 0048 FB68     		ldr	r3, [r7, #12]
+  89 004a 0133     		adds	r3, r3, #1
+  90 004c FB60     		str	r3, [r7, #12]
+  91              	.L2:
+  20:polyvec.c     ****     for(j = 0; j < L; ++j)
+  92              		.loc 1 20 3 discriminator 1
+  93 004e FB68     		ldr	r3, [r7, #12]
+  94 0050 032B     		cmp	r3, #3
+  95 0052 DDD9     		bls	.L5
+  23:polyvec.c     **** }
+  96              		.loc 1 23 1
+  97 0054 00BF     		nop
+  98 0056 00BF     		nop
+  99 0058 1037     		adds	r7, r7, #16
+ 100              	.LCFI3:
+ 101              		.cfi_def_cfa_offset 8
+ 102 005a BD46     		mov	sp, r7
+ 103              	.LCFI4:
+ 104              		.cfi_def_cfa_register 13
+ 105              		@ sp needed
+ 106 005c 80BD     		pop	{r7, pc}
+ 107              		.cfi_endproc
+ 108              	.LFE0:
+ 110              		.section	.text.pqcrystals_dilithium2_refpolyvec_matrix_pointwise_montgomery,"ax",%progbits
+ 111              		.align	1
+ 112              		.global	pqcrystals_dilithium2_refpolyvec_matrix_pointwise_montgomery
+ 113              		.syntax unified
+ 114              		.thumb
+ 115              		.thumb_func
+ 116              		.fpu softvfp
+ 118              	pqcrystals_dilithium2_refpolyvec_matrix_pointwise_montgomery:
+ 119              	.LFB1:
+  24:polyvec.c     **** 
+  25:polyvec.c     **** void polyvec_matrix_pointwise_montgomery(polyveck *t, const polyvecl mat[K], const polyvecl *v) {
+ 120              		.loc 1 25 97
+ 121              		.cfi_startproc
+ 122              		@ args = 0, pretend = 0, frame = 24
+ 123              		@ frame_needed = 1, uses_anonymous_args = 0
+ 124 0000 80B5     		push	{r7, lr}
+ 125              	.LCFI5:
+ 126              		.cfi_def_cfa_offset 8
+ 127              		.cfi_offset 7, -8
+ 128              		.cfi_offset 14, -4
+ 129 0002 86B0     		sub	sp, sp, #24
+ 130              	.LCFI6:
+ 131              		.cfi_def_cfa_offset 32
+ 132 0004 00AF     		add	r7, sp, #0
+ 133              	.LCFI7:
+ 134              		.cfi_def_cfa_register 7
+ 135 0006 F860     		str	r0, [r7, #12]
+ 136 0008 B960     		str	r1, [r7, #8]
+ 137 000a 7A60     		str	r2, [r7, #4]
+  26:polyvec.c     ****   unsigned int i;
+  27:polyvec.c     **** 
+  28:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 138              		.loc 1 28 9
+ 139 000c 0023     		movs	r3, #0
+ 140 000e 7B61     		str	r3, [r7, #20]
+ 141              		.loc 1 28 3
+ 142 0010 0EE0     		b	.L7
+ 143              	.L8:
+  29:polyvec.c     ****     polyvecl_pointwise_acc_montgomery(&t->vec[i], &mat[i], v);
+ 144              		.loc 1 29 5 discriminator 3
+ 145 0012 7B69     		ldr	r3, [r7, #20]
+ 146 0014 9B02     		lsls	r3, r3, #10
+ 147 0016 FA68     		ldr	r2, [r7, #12]
+ 148 0018 D018     		adds	r0, r2, r3
+ 149              		.loc 1 29 55 discriminator 3
+ 150 001a 7B69     		ldr	r3, [r7, #20]
+ 151 001c 1B03     		lsls	r3, r3, #12
+ 152              		.loc 1 29 5 discriminator 3
+ 153 001e BA68     		ldr	r2, [r7, #8]
+ 154 0020 1344     		add	r3, r3, r2
+ 155 0022 7A68     		ldr	r2, [r7, #4]
+ 156 0024 1946     		mov	r1, r3
+ 157 0026 FFF7FEFF 		bl	pqcrystals_dilithium2_refpolyvecl_pointwise_acc_montgomery
+  28:polyvec.c     ****     polyvecl_pointwise_acc_montgomery(&t->vec[i], &mat[i], v);
+ 158              		.loc 1 28 21 discriminator 3
+ 159 002a 7B69     		ldr	r3, [r7, #20]
+ 160 002c 0133     		adds	r3, r3, #1
+ 161 002e 7B61     		str	r3, [r7, #20]
+ 162              	.L7:
+  28:polyvec.c     ****     polyvecl_pointwise_acc_montgomery(&t->vec[i], &mat[i], v);
+ 163              		.loc 1 28 3 discriminator 1
+ 164 0030 7B69     		ldr	r3, [r7, #20]
+ 165 0032 032B     		cmp	r3, #3
+ 166 0034 EDD9     		bls	.L8
+  30:polyvec.c     **** }
+ 167              		.loc 1 30 1
+ 168 0036 00BF     		nop
+ 169 0038 00BF     		nop
+ 170 003a 1837     		adds	r7, r7, #24
+ 171              	.LCFI8:
+ 172              		.cfi_def_cfa_offset 8
+ 173 003c BD46     		mov	sp, r7
+ 174              	.LCFI9:
+ 175              		.cfi_def_cfa_register 13
+ 176              		@ sp needed
+ 177 003e 80BD     		pop	{r7, pc}
+ 178              		.cfi_endproc
+ 179              	.LFE1:
+ 181              		.section	.text.pqcrystals_dilithium2_refpolyvecl_uniform_eta,"ax",%progbits
+ 182              		.align	1
+ 183              		.global	pqcrystals_dilithium2_refpolyvecl_uniform_eta
+ 184              		.syntax unified
+ 185              		.thumb
+ 186              		.thumb_func
+ 187              		.fpu softvfp
+ 189              	pqcrystals_dilithium2_refpolyvecl_uniform_eta:
+ 190              	.LFB2:
+  31:polyvec.c     **** 
+  32:polyvec.c     **** /**************************************************************/
+  33:polyvec.c     **** /************ Vectors of polynomials of length L **************/
+  34:polyvec.c     **** /**************************************************************/
+  35:polyvec.c     **** 
+  36:polyvec.c     **** void polyvecl_uniform_eta(polyvecl *v, const uint8_t seed[CRHBYTES], uint16_t nonce) {
+ 191              		.loc 1 36 86
+ 192              		.cfi_startproc
+ 193              		@ args = 0, pretend = 0, frame = 24
+ 194              		@ frame_needed = 1, uses_anonymous_args = 0
+ 195 0000 80B5     		push	{r7, lr}
+ 196              	.LCFI10:
+ 197              		.cfi_def_cfa_offset 8
+ 198              		.cfi_offset 7, -8
+ 199              		.cfi_offset 14, -4
+ 200 0002 86B0     		sub	sp, sp, #24
+ 201              	.LCFI11:
+ 202              		.cfi_def_cfa_offset 32
+ 203 0004 00AF     		add	r7, sp, #0
+ 204              	.LCFI12:
+ 205              		.cfi_def_cfa_register 7
+ 206 0006 F860     		str	r0, [r7, #12]
+ 207 0008 B960     		str	r1, [r7, #8]
+ 208 000a 1346     		mov	r3, r2
+ 209 000c FB80     		strh	r3, [r7, #6]	@ movhi
+  37:polyvec.c     ****   unsigned int i;
+  38:polyvec.c     **** 
+  39:polyvec.c     ****   for(i = 0; i < L; ++i)
+ 210              		.loc 1 39 9
+ 211 000e 0023     		movs	r3, #0
+ 212 0010 7B61     		str	r3, [r7, #20]
+ 213              		.loc 1 39 3
+ 214 0012 0DE0     		b	.L10
+ 215              	.L11:
+  40:polyvec.c     ****     poly_uniform_eta(&v->vec[i], seed, nonce++);
+ 216              		.loc 1 40 5 discriminator 3
+ 217 0014 7B69     		ldr	r3, [r7, #20]
+ 218 0016 9B02     		lsls	r3, r3, #10
+ 219 0018 FA68     		ldr	r2, [r7, #12]
+ 220 001a D018     		adds	r0, r2, r3
+ 221 001c FB88     		ldrh	r3, [r7, #6]
+ 222 001e 5A1C     		adds	r2, r3, #1
+ 223 0020 FA80     		strh	r2, [r7, #6]	@ movhi
+ 224 0022 1A46     		mov	r2, r3
+ 225 0024 B968     		ldr	r1, [r7, #8]
+ 226 0026 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_uniform_eta
+  39:polyvec.c     ****     poly_uniform_eta(&v->vec[i], seed, nonce++);
+ 227              		.loc 1 39 21 discriminator 3
+ 228 002a 7B69     		ldr	r3, [r7, #20]
+ 229 002c 0133     		adds	r3, r3, #1
+ 230 002e 7B61     		str	r3, [r7, #20]
+ 231              	.L10:
+  39:polyvec.c     ****     poly_uniform_eta(&v->vec[i], seed, nonce++);
+ 232              		.loc 1 39 3 discriminator 1
+ 233 0030 7B69     		ldr	r3, [r7, #20]
+ 234 0032 032B     		cmp	r3, #3
+ 235 0034 EED9     		bls	.L11
+  41:polyvec.c     **** }
+ 236              		.loc 1 41 1
+ 237 0036 00BF     		nop
+ 238 0038 00BF     		nop
+ 239 003a 1837     		adds	r7, r7, #24
+ 240              	.LCFI13:
+ 241              		.cfi_def_cfa_offset 8
+ 242 003c BD46     		mov	sp, r7
+ 243              	.LCFI14:
+ 244              		.cfi_def_cfa_register 13
+ 245              		@ sp needed
+ 246 003e 80BD     		pop	{r7, pc}
+ 247              		.cfi_endproc
+ 248              	.LFE2:
+ 250              		.section	.text.pqcrystals_dilithium2_refpolyvecl_uniform_gamma1,"ax",%progbits
+ 251              		.align	1
+ 252              		.global	pqcrystals_dilithium2_refpolyvecl_uniform_gamma1
+ 253              		.syntax unified
+ 254              		.thumb
+ 255              		.thumb_func
+ 256              		.fpu softvfp
+ 258              	pqcrystals_dilithium2_refpolyvecl_uniform_gamma1:
+ 259              	.LFB3:
+  42:polyvec.c     **** 
+  43:polyvec.c     **** void polyvecl_uniform_gamma1(polyvecl *v, const uint8_t seed[CRHBYTES], uint16_t nonce) {
+ 260              		.loc 1 43 89
+ 261              		.cfi_startproc
+ 262              		@ args = 0, pretend = 0, frame = 24
+ 263              		@ frame_needed = 1, uses_anonymous_args = 0
+ 264 0000 80B5     		push	{r7, lr}
+ 265              	.LCFI15:
+ 266              		.cfi_def_cfa_offset 8
+ 267              		.cfi_offset 7, -8
+ 268              		.cfi_offset 14, -4
+ 269 0002 86B0     		sub	sp, sp, #24
+ 270              	.LCFI16:
+ 271              		.cfi_def_cfa_offset 32
+ 272 0004 00AF     		add	r7, sp, #0
+ 273              	.LCFI17:
+ 274              		.cfi_def_cfa_register 7
+ 275 0006 F860     		str	r0, [r7, #12]
+ 276 0008 B960     		str	r1, [r7, #8]
+ 277 000a 1346     		mov	r3, r2
+ 278 000c FB80     		strh	r3, [r7, #6]	@ movhi
+  44:polyvec.c     ****   unsigned int i;
+  45:polyvec.c     **** 
+  46:polyvec.c     ****   for(i = 0; i < L; ++i)
+ 279              		.loc 1 46 9
+ 280 000e 0023     		movs	r3, #0
+ 281 0010 7B61     		str	r3, [r7, #20]
+ 282              		.loc 1 46 3
+ 283 0012 11E0     		b	.L13
+ 284              	.L14:
+  47:polyvec.c     ****     poly_uniform_gamma1(&v->vec[i], seed, L*nonce + i);
+ 285              		.loc 1 47 5 discriminator 3
+ 286 0014 7B69     		ldr	r3, [r7, #20]
+ 287 0016 9B02     		lsls	r3, r3, #10
+ 288 0018 FA68     		ldr	r2, [r7, #12]
+ 289 001a D018     		adds	r0, r2, r3
+ 290 001c FB88     		ldrh	r3, [r7, #6]	@ movhi
+ 291 001e 9B00     		lsls	r3, r3, #2
+ 292 0020 9AB2     		uxth	r2, r3
+ 293 0022 7B69     		ldr	r3, [r7, #20]
+ 294 0024 9BB2     		uxth	r3, r3
+ 295 0026 1344     		add	r3, r3, r2
+ 296 0028 9BB2     		uxth	r3, r3
+ 297 002a 1A46     		mov	r2, r3
+ 298 002c B968     		ldr	r1, [r7, #8]
+ 299 002e FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_uniform_gamma1
+  46:polyvec.c     ****     poly_uniform_gamma1(&v->vec[i], seed, L*nonce + i);
+ 300              		.loc 1 46 21 discriminator 3
+ 301 0032 7B69     		ldr	r3, [r7, #20]
+ 302 0034 0133     		adds	r3, r3, #1
+ 303 0036 7B61     		str	r3, [r7, #20]
+ 304              	.L13:
+  46:polyvec.c     ****     poly_uniform_gamma1(&v->vec[i], seed, L*nonce + i);
+ 305              		.loc 1 46 3 discriminator 1
+ 306 0038 7B69     		ldr	r3, [r7, #20]
+ 307 003a 032B     		cmp	r3, #3
+ 308 003c EAD9     		bls	.L14
+  48:polyvec.c     **** }
+ 309              		.loc 1 48 1
+ 310 003e 00BF     		nop
+ 311 0040 00BF     		nop
+ 312 0042 1837     		adds	r7, r7, #24
+ 313              	.LCFI18:
+ 314              		.cfi_def_cfa_offset 8
+ 315 0044 BD46     		mov	sp, r7
+ 316              	.LCFI19:
+ 317              		.cfi_def_cfa_register 13
+ 318              		@ sp needed
+ 319 0046 80BD     		pop	{r7, pc}
+ 320              		.cfi_endproc
+ 321              	.LFE3:
+ 323              		.section	.text.pqcrystals_dilithium2_refpolyvecl_reduce,"ax",%progbits
+ 324              		.align	1
+ 325              		.global	pqcrystals_dilithium2_refpolyvecl_reduce
+ 326              		.syntax unified
+ 327              		.thumb
+ 328              		.thumb_func
+ 329              		.fpu softvfp
+ 331              	pqcrystals_dilithium2_refpolyvecl_reduce:
+ 332              	.LFB4:
+  49:polyvec.c     **** 
+  50:polyvec.c     **** void polyvecl_reduce(polyvecl *v) {
+ 333              		.loc 1 50 35
+ 334              		.cfi_startproc
+ 335              		@ args = 0, pretend = 0, frame = 16
+ 336              		@ frame_needed = 1, uses_anonymous_args = 0
+ 337 0000 80B5     		push	{r7, lr}
+ 338              	.LCFI20:
+ 339              		.cfi_def_cfa_offset 8
+ 340              		.cfi_offset 7, -8
+ 341              		.cfi_offset 14, -4
+ 342 0002 84B0     		sub	sp, sp, #16
+ 343              	.LCFI21:
+ 344              		.cfi_def_cfa_offset 24
+ 345 0004 00AF     		add	r7, sp, #0
+ 346              	.LCFI22:
+ 347              		.cfi_def_cfa_register 7
+ 348 0006 7860     		str	r0, [r7, #4]
+  51:polyvec.c     ****   unsigned int i;
+  52:polyvec.c     **** 
+  53:polyvec.c     ****   for(i = 0; i < L; ++i)
+ 349              		.loc 1 53 9
+ 350 0008 0023     		movs	r3, #0
+ 351 000a FB60     		str	r3, [r7, #12]
+ 352              		.loc 1 53 3
+ 353 000c 09E0     		b	.L16
+ 354              	.L17:
+  54:polyvec.c     ****     poly_reduce(&v->vec[i]);
+ 355              		.loc 1 54 5 discriminator 3
+ 356 000e FB68     		ldr	r3, [r7, #12]
+ 357 0010 9B02     		lsls	r3, r3, #10
+ 358 0012 7A68     		ldr	r2, [r7, #4]
+ 359 0014 1344     		add	r3, r3, r2
+ 360 0016 1846     		mov	r0, r3
+ 361 0018 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_reduce
+  53:polyvec.c     ****     poly_reduce(&v->vec[i]);
+ 362              		.loc 1 53 21 discriminator 3
+ 363 001c FB68     		ldr	r3, [r7, #12]
+ 364 001e 0133     		adds	r3, r3, #1
+ 365 0020 FB60     		str	r3, [r7, #12]
+ 366              	.L16:
+  53:polyvec.c     ****     poly_reduce(&v->vec[i]);
+ 367              		.loc 1 53 3 discriminator 1
+ 368 0022 FB68     		ldr	r3, [r7, #12]
+ 369 0024 032B     		cmp	r3, #3
+ 370 0026 F2D9     		bls	.L17
+  55:polyvec.c     **** }
+ 371              		.loc 1 55 1
+ 372 0028 00BF     		nop
+ 373 002a 00BF     		nop
+ 374 002c 1037     		adds	r7, r7, #16
+ 375              	.LCFI23:
+ 376              		.cfi_def_cfa_offset 8
+ 377 002e BD46     		mov	sp, r7
+ 378              	.LCFI24:
+ 379              		.cfi_def_cfa_register 13
+ 380              		@ sp needed
+ 381 0030 80BD     		pop	{r7, pc}
+ 382              		.cfi_endproc
+ 383              	.LFE4:
+ 385              		.section	.text.pqcrystals_dilithium2_refpolyvecl_add,"ax",%progbits
+ 386              		.align	1
+ 387              		.global	pqcrystals_dilithium2_refpolyvecl_add
+ 388              		.syntax unified
+ 389              		.thumb
+ 390              		.thumb_func
+ 391              		.fpu softvfp
+ 393              	pqcrystals_dilithium2_refpolyvecl_add:
+ 394              	.LFB5:
+  56:polyvec.c     **** 
+  57:polyvec.c     **** /*************************************************
+  58:polyvec.c     **** * Name:        polyvecl_add
+  59:polyvec.c     **** *
+  60:polyvec.c     **** * Description: Add vectors of polynomials of length L.
+  61:polyvec.c     **** *              No modular reduction is performed.
+  62:polyvec.c     **** *
+  63:polyvec.c     **** * Arguments:   - polyvecl *w: pointer to output vector
+  64:polyvec.c     **** *              - const polyvecl *u: pointer to first summand
+  65:polyvec.c     **** *              - const polyvecl *v: pointer to second summand
+  66:polyvec.c     **** **************************************************/
+  67:polyvec.c     **** void polyvecl_add(polyvecl *w, const polyvecl *u, const polyvecl *v) {
+ 395              		.loc 1 67 70
+ 396              		.cfi_startproc
+ 397              		@ args = 0, pretend = 0, frame = 24
+ 398              		@ frame_needed = 1, uses_anonymous_args = 0
+ 399 0000 80B5     		push	{r7, lr}
+ 400              	.LCFI25:
+ 401              		.cfi_def_cfa_offset 8
+ 402              		.cfi_offset 7, -8
+ 403              		.cfi_offset 14, -4
+ 404 0002 86B0     		sub	sp, sp, #24
+ 405              	.LCFI26:
+ 406              		.cfi_def_cfa_offset 32
+ 407 0004 00AF     		add	r7, sp, #0
+ 408              	.LCFI27:
+ 409              		.cfi_def_cfa_register 7
+ 410 0006 F860     		str	r0, [r7, #12]
+ 411 0008 B960     		str	r1, [r7, #8]
+ 412 000a 7A60     		str	r2, [r7, #4]
+  68:polyvec.c     ****   unsigned int i;
+  69:polyvec.c     **** 
+  70:polyvec.c     ****   for(i = 0; i < L; ++i)
+ 413              		.loc 1 70 9
+ 414 000c 0023     		movs	r3, #0
+ 415 000e 7B61     		str	r3, [r7, #20]
+ 416              		.loc 1 70 3
+ 417 0010 11E0     		b	.L19
+ 418              	.L20:
+  71:polyvec.c     ****     poly_add(&w->vec[i], &u->vec[i], &v->vec[i]);
+ 419              		.loc 1 71 5 discriminator 3
+ 420 0012 7B69     		ldr	r3, [r7, #20]
+ 421 0014 9B02     		lsls	r3, r3, #10
+ 422 0016 FA68     		ldr	r2, [r7, #12]
+ 423 0018 D018     		adds	r0, r2, r3
+ 424 001a 7B69     		ldr	r3, [r7, #20]
+ 425 001c 9B02     		lsls	r3, r3, #10
+ 426 001e BA68     		ldr	r2, [r7, #8]
+ 427 0020 D118     		adds	r1, r2, r3
+ 428 0022 7B69     		ldr	r3, [r7, #20]
+ 429 0024 9B02     		lsls	r3, r3, #10
+ 430 0026 7A68     		ldr	r2, [r7, #4]
+ 431 0028 1344     		add	r3, r3, r2
+ 432 002a 1A46     		mov	r2, r3
+ 433 002c FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_add
+  70:polyvec.c     ****     poly_add(&w->vec[i], &u->vec[i], &v->vec[i]);
+ 434              		.loc 1 70 21 discriminator 3
+ 435 0030 7B69     		ldr	r3, [r7, #20]
+ 436 0032 0133     		adds	r3, r3, #1
+ 437 0034 7B61     		str	r3, [r7, #20]
+ 438              	.L19:
+  70:polyvec.c     ****     poly_add(&w->vec[i], &u->vec[i], &v->vec[i]);
+ 439              		.loc 1 70 3 discriminator 1
+ 440 0036 7B69     		ldr	r3, [r7, #20]
+ 441 0038 032B     		cmp	r3, #3
+ 442 003a EAD9     		bls	.L20
+  72:polyvec.c     **** }
+ 443              		.loc 1 72 1
+ 444 003c 00BF     		nop
+ 445 003e 00BF     		nop
+ 446 0040 1837     		adds	r7, r7, #24
+ 447              	.LCFI28:
+ 448              		.cfi_def_cfa_offset 8
+ 449 0042 BD46     		mov	sp, r7
+ 450              	.LCFI29:
+ 451              		.cfi_def_cfa_register 13
+ 452              		@ sp needed
+ 453 0044 80BD     		pop	{r7, pc}
+ 454              		.cfi_endproc
+ 455              	.LFE5:
+ 457              		.section	.text.pqcrystals_dilithium2_refpolyvecl_ntt,"ax",%progbits
+ 458              		.align	1
+ 459              		.global	pqcrystals_dilithium2_refpolyvecl_ntt
+ 460              		.syntax unified
+ 461              		.thumb
+ 462              		.thumb_func
+ 463              		.fpu softvfp
+ 465              	pqcrystals_dilithium2_refpolyvecl_ntt:
+ 466              	.LFB6:
+  73:polyvec.c     **** 
+  74:polyvec.c     **** /*************************************************
+  75:polyvec.c     **** * Name:        polyvecl_ntt
+  76:polyvec.c     **** *
+  77:polyvec.c     **** * Description: Forward NTT of all polynomials in vector of length L. Output
+  78:polyvec.c     **** *              coefficients can be up to 16*Q larger than input coefficients.
+  79:polyvec.c     **** *
+  80:polyvec.c     **** * Arguments:   - polyvecl *v: pointer to input/output vector
+  81:polyvec.c     **** **************************************************/
+  82:polyvec.c     **** void polyvecl_ntt(polyvecl *v) {
+ 467              		.loc 1 82 32
+ 468              		.cfi_startproc
+ 469              		@ args = 0, pretend = 0, frame = 16
+ 470              		@ frame_needed = 1, uses_anonymous_args = 0
+ 471 0000 80B5     		push	{r7, lr}
+ 472              	.LCFI30:
+ 473              		.cfi_def_cfa_offset 8
+ 474              		.cfi_offset 7, -8
+ 475              		.cfi_offset 14, -4
+ 476 0002 84B0     		sub	sp, sp, #16
+ 477              	.LCFI31:
+ 478              		.cfi_def_cfa_offset 24
+ 479 0004 00AF     		add	r7, sp, #0
+ 480              	.LCFI32:
+ 481              		.cfi_def_cfa_register 7
+ 482 0006 7860     		str	r0, [r7, #4]
+  83:polyvec.c     ****   unsigned int i;
+  84:polyvec.c     **** 
+  85:polyvec.c     ****   for(i = 0; i < L; ++i)
+ 483              		.loc 1 85 9
+ 484 0008 0023     		movs	r3, #0
+ 485 000a FB60     		str	r3, [r7, #12]
+ 486              		.loc 1 85 3
+ 487 000c 09E0     		b	.L22
+ 488              	.L23:
+  86:polyvec.c     ****     poly_ntt(&v->vec[i]);
+ 489              		.loc 1 86 5 discriminator 3
+ 490 000e FB68     		ldr	r3, [r7, #12]
+ 491 0010 9B02     		lsls	r3, r3, #10
+ 492 0012 7A68     		ldr	r2, [r7, #4]
+ 493 0014 1344     		add	r3, r3, r2
+ 494 0016 1846     		mov	r0, r3
+ 495 0018 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_ntt
+  85:polyvec.c     ****     poly_ntt(&v->vec[i]);
+ 496              		.loc 1 85 21 discriminator 3
+ 497 001c FB68     		ldr	r3, [r7, #12]
+ 498 001e 0133     		adds	r3, r3, #1
+ 499 0020 FB60     		str	r3, [r7, #12]
+ 500              	.L22:
+  85:polyvec.c     ****     poly_ntt(&v->vec[i]);
+ 501              		.loc 1 85 3 discriminator 1
+ 502 0022 FB68     		ldr	r3, [r7, #12]
+ 503 0024 032B     		cmp	r3, #3
+ 504 0026 F2D9     		bls	.L23
+  87:polyvec.c     **** }
+ 505              		.loc 1 87 1
+ 506 0028 00BF     		nop
+ 507 002a 00BF     		nop
+ 508 002c 1037     		adds	r7, r7, #16
+ 509              	.LCFI33:
+ 510              		.cfi_def_cfa_offset 8
+ 511 002e BD46     		mov	sp, r7
+ 512              	.LCFI34:
+ 513              		.cfi_def_cfa_register 13
+ 514              		@ sp needed
+ 515 0030 80BD     		pop	{r7, pc}
+ 516              		.cfi_endproc
+ 517              	.LFE6:
+ 519              		.section	.text.pqcrystals_dilithium2_refpolyvecl_invntt_tomont,"ax",%progbits
+ 520              		.align	1
+ 521              		.global	pqcrystals_dilithium2_refpolyvecl_invntt_tomont
+ 522              		.syntax unified
+ 523              		.thumb
+ 524              		.thumb_func
+ 525              		.fpu softvfp
+ 527              	pqcrystals_dilithium2_refpolyvecl_invntt_tomont:
+ 528              	.LFB7:
+  88:polyvec.c     **** 
+  89:polyvec.c     **** void polyvecl_invntt_tomont(polyvecl *v) {
+ 529              		.loc 1 89 42
+ 530              		.cfi_startproc
+ 531              		@ args = 0, pretend = 0, frame = 16
+ 532              		@ frame_needed = 1, uses_anonymous_args = 0
+ 533 0000 80B5     		push	{r7, lr}
+ 534              	.LCFI35:
+ 535              		.cfi_def_cfa_offset 8
+ 536              		.cfi_offset 7, -8
+ 537              		.cfi_offset 14, -4
+ 538 0002 84B0     		sub	sp, sp, #16
+ 539              	.LCFI36:
+ 540              		.cfi_def_cfa_offset 24
+ 541 0004 00AF     		add	r7, sp, #0
+ 542              	.LCFI37:
+ 543              		.cfi_def_cfa_register 7
+ 544 0006 7860     		str	r0, [r7, #4]
+  90:polyvec.c     ****   unsigned int i;
+  91:polyvec.c     **** 
+  92:polyvec.c     ****   for(i = 0; i < L; ++i)
+ 545              		.loc 1 92 9
+ 546 0008 0023     		movs	r3, #0
+ 547 000a FB60     		str	r3, [r7, #12]
+ 548              		.loc 1 92 3
+ 549 000c 09E0     		b	.L25
+ 550              	.L26:
+  93:polyvec.c     ****     poly_invntt_tomont(&v->vec[i]);
+ 551              		.loc 1 93 5 discriminator 3
+ 552 000e FB68     		ldr	r3, [r7, #12]
+ 553 0010 9B02     		lsls	r3, r3, #10
+ 554 0012 7A68     		ldr	r2, [r7, #4]
+ 555 0014 1344     		add	r3, r3, r2
+ 556 0016 1846     		mov	r0, r3
+ 557 0018 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_invntt_tomont
+  92:polyvec.c     ****     poly_invntt_tomont(&v->vec[i]);
+ 558              		.loc 1 92 21 discriminator 3
+ 559 001c FB68     		ldr	r3, [r7, #12]
+ 560 001e 0133     		adds	r3, r3, #1
+ 561 0020 FB60     		str	r3, [r7, #12]
+ 562              	.L25:
+  92:polyvec.c     ****     poly_invntt_tomont(&v->vec[i]);
+ 563              		.loc 1 92 3 discriminator 1
+ 564 0022 FB68     		ldr	r3, [r7, #12]
+ 565 0024 032B     		cmp	r3, #3
+ 566 0026 F2D9     		bls	.L26
+  94:polyvec.c     **** }
+ 567              		.loc 1 94 1
+ 568 0028 00BF     		nop
+ 569 002a 00BF     		nop
+ 570 002c 1037     		adds	r7, r7, #16
+ 571              	.LCFI38:
+ 572              		.cfi_def_cfa_offset 8
+ 573 002e BD46     		mov	sp, r7
+ 574              	.LCFI39:
+ 575              		.cfi_def_cfa_register 13
+ 576              		@ sp needed
+ 577 0030 80BD     		pop	{r7, pc}
+ 578              		.cfi_endproc
+ 579              	.LFE7:
+ 581              		.section	.text.pqcrystals_dilithium2_refpolyvecl_pointwise_poly_montgomery,"ax",%progbits
+ 582              		.align	1
+ 583              		.global	pqcrystals_dilithium2_refpolyvecl_pointwise_poly_montgomery
+ 584              		.syntax unified
+ 585              		.thumb
+ 586              		.thumb_func
+ 587              		.fpu softvfp
+ 589              	pqcrystals_dilithium2_refpolyvecl_pointwise_poly_montgomery:
+ 590              	.LFB8:
+  95:polyvec.c     **** 
+  96:polyvec.c     **** void polyvecl_pointwise_poly_montgomery(polyvecl *r, const poly *a, const polyvecl *v) {
+ 591              		.loc 1 96 88
+ 592              		.cfi_startproc
+ 593              		@ args = 0, pretend = 0, frame = 24
+ 594              		@ frame_needed = 1, uses_anonymous_args = 0
+ 595 0000 80B5     		push	{r7, lr}
+ 596              	.LCFI40:
+ 597              		.cfi_def_cfa_offset 8
+ 598              		.cfi_offset 7, -8
+ 599              		.cfi_offset 14, -4
+ 600 0002 86B0     		sub	sp, sp, #24
+ 601              	.LCFI41:
+ 602              		.cfi_def_cfa_offset 32
+ 603 0004 00AF     		add	r7, sp, #0
+ 604              	.LCFI42:
+ 605              		.cfi_def_cfa_register 7
+ 606 0006 F860     		str	r0, [r7, #12]
+ 607 0008 B960     		str	r1, [r7, #8]
+ 608 000a 7A60     		str	r2, [r7, #4]
+  97:polyvec.c     ****   unsigned int i;
+  98:polyvec.c     **** 
+  99:polyvec.c     ****   for(i = 0; i < L; ++i)
+ 609              		.loc 1 99 9
+ 610 000c 0023     		movs	r3, #0
+ 611 000e 7B61     		str	r3, [r7, #20]
+ 612              		.loc 1 99 3
+ 613 0010 0EE0     		b	.L28
+ 614              	.L29:
+ 100:polyvec.c     ****     poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
+ 615              		.loc 1 100 5 discriminator 3
+ 616 0012 7B69     		ldr	r3, [r7, #20]
+ 617 0014 9B02     		lsls	r3, r3, #10
+ 618 0016 FA68     		ldr	r2, [r7, #12]
+ 619 0018 D018     		adds	r0, r2, r3
+ 620 001a 7B69     		ldr	r3, [r7, #20]
+ 621 001c 9B02     		lsls	r3, r3, #10
+ 622 001e 7A68     		ldr	r2, [r7, #4]
+ 623 0020 1344     		add	r3, r3, r2
+ 624 0022 1A46     		mov	r2, r3
+ 625 0024 B968     		ldr	r1, [r7, #8]
+ 626 0026 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_pointwise_montgomery
+  99:polyvec.c     ****     poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
+ 627              		.loc 1 99 21 discriminator 3
+ 628 002a 7B69     		ldr	r3, [r7, #20]
+ 629 002c 0133     		adds	r3, r3, #1
+ 630 002e 7B61     		str	r3, [r7, #20]
+ 631              	.L28:
+  99:polyvec.c     ****     poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
+ 632              		.loc 1 99 3 discriminator 1
+ 633 0030 7B69     		ldr	r3, [r7, #20]
+ 634 0032 032B     		cmp	r3, #3
+ 635 0034 EDD9     		bls	.L29
+ 101:polyvec.c     **** }
+ 636              		.loc 1 101 1
+ 637 0036 00BF     		nop
+ 638 0038 00BF     		nop
+ 639 003a 1837     		adds	r7, r7, #24
+ 640              	.LCFI43:
+ 641              		.cfi_def_cfa_offset 8
+ 642 003c BD46     		mov	sp, r7
+ 643              	.LCFI44:
+ 644              		.cfi_def_cfa_register 13
+ 645              		@ sp needed
+ 646 003e 80BD     		pop	{r7, pc}
+ 647              		.cfi_endproc
+ 648              	.LFE8:
+ 650              		.section	.text.pqcrystals_dilithium2_refpolyvecl_pointwise_acc_montgomery,"ax",%progbits
+ 651              		.align	1
+ 652              		.global	pqcrystals_dilithium2_refpolyvecl_pointwise_acc_montgomery
+ 653              		.syntax unified
+ 654              		.thumb
+ 655              		.thumb_func
+ 656              		.fpu softvfp
+ 658              	pqcrystals_dilithium2_refpolyvecl_pointwise_acc_montgomery:
+ 659              	.LFB9:
+ 102:polyvec.c     **** 
+ 103:polyvec.c     **** /*************************************************
+ 104:polyvec.c     **** * Name:        polyvecl_pointwise_acc_montgomery
+ 105:polyvec.c     **** *
+ 106:polyvec.c     **** * Description: Pointwise multiply vectors of polynomials of length L, multiply
+ 107:polyvec.c     **** *              resulting vector by 2^{-32} and add (accumulate) polynomials
+ 108:polyvec.c     **** *              in it. Input/output vectors are in NTT domain representation.
+ 109:polyvec.c     **** *
+ 110:polyvec.c     **** * Arguments:   - poly *w: output polynomial
+ 111:polyvec.c     **** *              - const polyvecl *u: pointer to first input vector
+ 112:polyvec.c     **** *              - const polyvecl *v: pointer to second input vector
+ 113:polyvec.c     **** **************************************************/
+ 114:polyvec.c     **** void polyvecl_pointwise_acc_montgomery(poly *w,
+ 115:polyvec.c     ****                                        const polyvecl *u,
+ 116:polyvec.c     ****                                        const polyvecl *v)
+ 117:polyvec.c     **** {
+ 660              		.loc 1 117 1
+ 661              		.cfi_startproc
+ 662              		@ args = 0, pretend = 0, frame = 1048
+ 663              		@ frame_needed = 1, uses_anonymous_args = 0
+ 664 0000 80B5     		push	{r7, lr}
+ 665              	.LCFI45:
+ 666              		.cfi_def_cfa_offset 8
+ 667              		.cfi_offset 7, -8
+ 668              		.cfi_offset 14, -4
+ 669 0002 ADF5836D 		sub	sp, sp, #1048
+ 670              	.LCFI46:
+ 671              		.cfi_def_cfa_offset 1056
+ 672 0006 00AF     		add	r7, sp, #0
+ 673              	.LCFI47:
+ 674              		.cfi_def_cfa_register 7
+ 675 0008 07F58363 		add	r3, r7, #1048
+ 676 000c A3F20C43 		subw	r3, r3, #1036
+ 677 0010 1860     		str	r0, [r3]
+ 678 0012 07F58363 		add	r3, r7, #1048
+ 679 0016 A3F58263 		sub	r3, r3, #1040
+ 680 001a 1960     		str	r1, [r3]
+ 681 001c 07F58363 		add	r3, r7, #1048
+ 682 0020 A3F21443 		subw	r3, r3, #1044
+ 683 0024 1A60     		str	r2, [r3]
+ 118:polyvec.c     ****   unsigned int i;
+ 119:polyvec.c     ****   poly t;
+ 120:polyvec.c     **** 
+ 121:polyvec.c     ****   poly_pointwise_montgomery(w, &u->vec[0], &v->vec[0]);
+ 684              		.loc 1 121 3
+ 685 0026 07F58363 		add	r3, r7, #1048
+ 686 002a A3F58263 		sub	r3, r3, #1040
+ 687 002e 1968     		ldr	r1, [r3]
+ 688 0030 07F58363 		add	r3, r7, #1048
+ 689 0034 A3F21443 		subw	r3, r3, #1044
+ 690 0038 1A68     		ldr	r2, [r3]
+ 691 003a 07F58363 		add	r3, r7, #1048
+ 692 003e A3F20C43 		subw	r3, r3, #1036
+ 693 0042 1868     		ldr	r0, [r3]
+ 694 0044 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_pointwise_montgomery
+ 122:polyvec.c     ****   for(i = 1; i < L; ++i) {
+ 695              		.loc 1 122 9
+ 696 0048 0123     		movs	r3, #1
+ 697 004a C7F81434 		str	r3, [r7, #1044]
+ 698              		.loc 1 122 3
+ 699 004e 29E0     		b	.L31
+ 700              	.L32:
+ 123:polyvec.c     ****     poly_pointwise_montgomery(&t, &u->vec[i], &v->vec[i]);
+ 701              		.loc 1 123 5 discriminator 3
+ 702 0050 07F58363 		add	r3, r7, #1048
+ 703 0054 A3F58262 		sub	r2, r3, #1040
+ 704 0058 D7F81434 		ldr	r3, [r7, #1044]
+ 705 005c 9B02     		lsls	r3, r3, #10
+ 706 005e 1268     		ldr	r2, [r2]
+ 707 0060 D118     		adds	r1, r2, r3
+ 708 0062 07F58363 		add	r3, r7, #1048
+ 709 0066 A3F21442 		subw	r2, r3, #1044
+ 710 006a D7F81434 		ldr	r3, [r7, #1044]
+ 711 006e 9B02     		lsls	r3, r3, #10
+ 712 0070 1268     		ldr	r2, [r2]
+ 713 0072 1A44     		add	r2, r2, r3
+ 714 0074 07F11403 		add	r3, r7, #20
+ 715 0078 1846     		mov	r0, r3
+ 716 007a FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_pointwise_montgomery
+ 124:polyvec.c     ****     poly_add(w, w, &t);
+ 717              		.loc 1 124 5 discriminator 3
+ 718 007e 07F11402 		add	r2, r7, #20
+ 719 0082 07F58363 		add	r3, r7, #1048
+ 720 0086 A3F20C41 		subw	r1, r3, #1036
+ 721 008a 07F58363 		add	r3, r7, #1048
+ 722 008e A3F20C43 		subw	r3, r3, #1036
+ 723 0092 0968     		ldr	r1, [r1]
+ 724 0094 1868     		ldr	r0, [r3]
+ 725 0096 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_add
+ 122:polyvec.c     ****   for(i = 1; i < L; ++i) {
+ 726              		.loc 1 122 21 discriminator 3
+ 727 009a D7F81434 		ldr	r3, [r7, #1044]
+ 728 009e 0133     		adds	r3, r3, #1
+ 729 00a0 C7F81434 		str	r3, [r7, #1044]
+ 730              	.L31:
+ 122:polyvec.c     ****   for(i = 1; i < L; ++i) {
+ 731              		.loc 1 122 3 discriminator 1
+ 732 00a4 D7F81434 		ldr	r3, [r7, #1044]
+ 733 00a8 032B     		cmp	r3, #3
+ 734 00aa D1D9     		bls	.L32
+ 125:polyvec.c     ****   }
+ 126:polyvec.c     **** }
+ 735              		.loc 1 126 1
+ 736 00ac 00BF     		nop
+ 737 00ae 00BF     		nop
+ 738 00b0 07F58367 		add	r7, r7, #1048
+ 739              	.LCFI48:
+ 740              		.cfi_def_cfa_offset 8
+ 741 00b4 BD46     		mov	sp, r7
+ 742              	.LCFI49:
+ 743              		.cfi_def_cfa_register 13
+ 744              		@ sp needed
+ 745 00b6 80BD     		pop	{r7, pc}
+ 746              		.cfi_endproc
+ 747              	.LFE9:
+ 749              		.section	.text.pqcrystals_dilithium2_refpolyvecl_chknorm,"ax",%progbits
+ 750              		.align	1
+ 751              		.global	pqcrystals_dilithium2_refpolyvecl_chknorm
+ 752              		.syntax unified
+ 753              		.thumb
+ 754              		.thumb_func
+ 755              		.fpu softvfp
+ 757              	pqcrystals_dilithium2_refpolyvecl_chknorm:
+ 758              	.LFB10:
+ 127:polyvec.c     **** 
+ 128:polyvec.c     **** /*************************************************
+ 129:polyvec.c     **** * Name:        polyvecl_chknorm
+ 130:polyvec.c     **** *
+ 131:polyvec.c     **** * Description: Check infinity norm of polynomials in vector of length L.
+ 132:polyvec.c     **** *              Assumes input polyvecl to be reduced by polyvecl_reduce().
+ 133:polyvec.c     **** *
+ 134:polyvec.c     **** * Arguments:   - const polyvecl *v: pointer to vector
+ 135:polyvec.c     **** *              - int32_t B: norm bound
+ 136:polyvec.c     **** *
+ 137:polyvec.c     **** * Returns 0 if norm of all polynomials is strictly smaller than B <= (Q-1)/8
+ 138:polyvec.c     **** * and 1 otherwise.
+ 139:polyvec.c     **** **************************************************/
+ 140:polyvec.c     **** int polyvecl_chknorm(const polyvecl *v, int32_t bound)  {
+ 759              		.loc 1 140 57
+ 760              		.cfi_startproc
+ 761              		@ args = 0, pretend = 0, frame = 16
+ 762              		@ frame_needed = 1, uses_anonymous_args = 0
+ 763 0000 80B5     		push	{r7, lr}
+ 764              	.LCFI50:
+ 765              		.cfi_def_cfa_offset 8
+ 766              		.cfi_offset 7, -8
+ 767              		.cfi_offset 14, -4
+ 768 0002 84B0     		sub	sp, sp, #16
+ 769              	.LCFI51:
+ 770              		.cfi_def_cfa_offset 24
+ 771 0004 00AF     		add	r7, sp, #0
+ 772              	.LCFI52:
+ 773              		.cfi_def_cfa_register 7
+ 774 0006 7860     		str	r0, [r7, #4]
+ 775 0008 3960     		str	r1, [r7]
+ 141:polyvec.c     ****   unsigned int i;
+ 142:polyvec.c     **** 
+ 143:polyvec.c     ****   for(i = 0; i < L; ++i)
+ 776              		.loc 1 143 9
+ 777 000a 0023     		movs	r3, #0
+ 778 000c FB60     		str	r3, [r7, #12]
+ 779              		.loc 1 143 3
+ 780 000e 0FE0     		b	.L34
+ 781              	.L37:
+ 144:polyvec.c     ****     if(poly_chknorm(&v->vec[i], bound))
+ 782              		.loc 1 144 8
+ 783 0010 FB68     		ldr	r3, [r7, #12]
+ 784 0012 9B02     		lsls	r3, r3, #10
+ 785 0014 7A68     		ldr	r2, [r7, #4]
+ 786 0016 1344     		add	r3, r3, r2
+ 787 0018 3968     		ldr	r1, [r7]
+ 788 001a 1846     		mov	r0, r3
+ 789 001c FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_chknorm
+ 790 0020 0346     		mov	r3, r0
+ 791              		.loc 1 144 7
+ 792 0022 002B     		cmp	r3, #0
+ 793 0024 01D0     		beq	.L35
+ 145:polyvec.c     ****       return 1;
+ 794              		.loc 1 145 14
+ 795 0026 0123     		movs	r3, #1
+ 796 0028 06E0     		b	.L36
+ 797              	.L35:
+ 143:polyvec.c     ****     if(poly_chknorm(&v->vec[i], bound))
+ 798              		.loc 1 143 21 discriminator 2
+ 799 002a FB68     		ldr	r3, [r7, #12]
+ 800 002c 0133     		adds	r3, r3, #1
+ 801 002e FB60     		str	r3, [r7, #12]
+ 802              	.L34:
+ 143:polyvec.c     ****     if(poly_chknorm(&v->vec[i], bound))
+ 803              		.loc 1 143 3 discriminator 1
+ 804 0030 FB68     		ldr	r3, [r7, #12]
+ 805 0032 032B     		cmp	r3, #3
+ 806 0034 ECD9     		bls	.L37
+ 146:polyvec.c     **** 
+ 147:polyvec.c     ****   return 0;
+ 807              		.loc 1 147 10
+ 808 0036 0023     		movs	r3, #0
+ 809              	.L36:
+ 148:polyvec.c     **** }
+ 810              		.loc 1 148 1
+ 811 0038 1846     		mov	r0, r3
+ 812 003a 1037     		adds	r7, r7, #16
+ 813              	.LCFI53:
+ 814              		.cfi_def_cfa_offset 8
+ 815 003c BD46     		mov	sp, r7
+ 816              	.LCFI54:
+ 817              		.cfi_def_cfa_register 13
+ 818              		@ sp needed
+ 819 003e 80BD     		pop	{r7, pc}
+ 820              		.cfi_endproc
+ 821              	.LFE10:
+ 823              		.section	.text.pqcrystals_dilithium2_refpolyveck_uniform_eta,"ax",%progbits
+ 824              		.align	1
+ 825              		.global	pqcrystals_dilithium2_refpolyveck_uniform_eta
+ 826              		.syntax unified
+ 827              		.thumb
+ 828              		.thumb_func
+ 829              		.fpu softvfp
+ 831              	pqcrystals_dilithium2_refpolyveck_uniform_eta:
+ 832              	.LFB11:
+ 149:polyvec.c     **** 
+ 150:polyvec.c     **** /**************************************************************/
+ 151:polyvec.c     **** /************ Vectors of polynomials of length K **************/
+ 152:polyvec.c     **** /**************************************************************/
+ 153:polyvec.c     **** 
+ 154:polyvec.c     **** void polyveck_uniform_eta(polyveck *v, const uint8_t seed[CRHBYTES], uint16_t nonce) {
+ 833              		.loc 1 154 86
+ 834              		.cfi_startproc
+ 835              		@ args = 0, pretend = 0, frame = 24
+ 836              		@ frame_needed = 1, uses_anonymous_args = 0
+ 837 0000 80B5     		push	{r7, lr}
+ 838              	.LCFI55:
+ 839              		.cfi_def_cfa_offset 8
+ 840              		.cfi_offset 7, -8
+ 841              		.cfi_offset 14, -4
+ 842 0002 86B0     		sub	sp, sp, #24
+ 843              	.LCFI56:
+ 844              		.cfi_def_cfa_offset 32
+ 845 0004 00AF     		add	r7, sp, #0
+ 846              	.LCFI57:
+ 847              		.cfi_def_cfa_register 7
+ 848 0006 F860     		str	r0, [r7, #12]
+ 849 0008 B960     		str	r1, [r7, #8]
+ 850 000a 1346     		mov	r3, r2
+ 851 000c FB80     		strh	r3, [r7, #6]	@ movhi
+ 155:polyvec.c     ****   unsigned int i;
+ 156:polyvec.c     **** 
+ 157:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 852              		.loc 1 157 9
+ 853 000e 0023     		movs	r3, #0
+ 854 0010 7B61     		str	r3, [r7, #20]
+ 855              		.loc 1 157 3
+ 856 0012 0DE0     		b	.L39
+ 857              	.L40:
+ 158:polyvec.c     ****     poly_uniform_eta(&v->vec[i], seed, nonce++);
+ 858              		.loc 1 158 5 discriminator 3
+ 859 0014 7B69     		ldr	r3, [r7, #20]
+ 860 0016 9B02     		lsls	r3, r3, #10
+ 861 0018 FA68     		ldr	r2, [r7, #12]
+ 862 001a D018     		adds	r0, r2, r3
+ 863 001c FB88     		ldrh	r3, [r7, #6]
+ 864 001e 5A1C     		adds	r2, r3, #1
+ 865 0020 FA80     		strh	r2, [r7, #6]	@ movhi
+ 866 0022 1A46     		mov	r2, r3
+ 867 0024 B968     		ldr	r1, [r7, #8]
+ 868 0026 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_uniform_eta
+ 157:polyvec.c     ****     poly_uniform_eta(&v->vec[i], seed, nonce++);
+ 869              		.loc 1 157 21 discriminator 3
+ 870 002a 7B69     		ldr	r3, [r7, #20]
+ 871 002c 0133     		adds	r3, r3, #1
+ 872 002e 7B61     		str	r3, [r7, #20]
+ 873              	.L39:
+ 157:polyvec.c     ****     poly_uniform_eta(&v->vec[i], seed, nonce++);
+ 874              		.loc 1 157 3 discriminator 1
+ 875 0030 7B69     		ldr	r3, [r7, #20]
+ 876 0032 032B     		cmp	r3, #3
+ 877 0034 EED9     		bls	.L40
+ 159:polyvec.c     **** }
+ 878              		.loc 1 159 1
+ 879 0036 00BF     		nop
+ 880 0038 00BF     		nop
+ 881 003a 1837     		adds	r7, r7, #24
+ 882              	.LCFI58:
+ 883              		.cfi_def_cfa_offset 8
+ 884 003c BD46     		mov	sp, r7
+ 885              	.LCFI59:
+ 886              		.cfi_def_cfa_register 13
+ 887              		@ sp needed
+ 888 003e 80BD     		pop	{r7, pc}
+ 889              		.cfi_endproc
+ 890              	.LFE11:
+ 892              		.section	.text.pqcrystals_dilithium2_refpolyveck_reduce,"ax",%progbits
+ 893              		.align	1
+ 894              		.global	pqcrystals_dilithium2_refpolyveck_reduce
+ 895              		.syntax unified
+ 896              		.thumb
+ 897              		.thumb_func
+ 898              		.fpu softvfp
+ 900              	pqcrystals_dilithium2_refpolyveck_reduce:
+ 901              	.LFB12:
+ 160:polyvec.c     **** 
+ 161:polyvec.c     **** /*************************************************
+ 162:polyvec.c     **** * Name:        polyveck_reduce
+ 163:polyvec.c     **** *
+ 164:polyvec.c     **** * Description: Reduce coefficients of polynomials in vector of length K
+ 165:polyvec.c     **** *              to representatives in [-6283009,6283007].
+ 166:polyvec.c     **** *
+ 167:polyvec.c     **** * Arguments:   - polyveck *v: pointer to input/output vector
+ 168:polyvec.c     **** **************************************************/
+ 169:polyvec.c     **** void polyveck_reduce(polyveck *v) {
+ 902              		.loc 1 169 35
+ 903              		.cfi_startproc
+ 904              		@ args = 0, pretend = 0, frame = 16
+ 905              		@ frame_needed = 1, uses_anonymous_args = 0
+ 906 0000 80B5     		push	{r7, lr}
+ 907              	.LCFI60:
+ 908              		.cfi_def_cfa_offset 8
+ 909              		.cfi_offset 7, -8
+ 910              		.cfi_offset 14, -4
+ 911 0002 84B0     		sub	sp, sp, #16
+ 912              	.LCFI61:
+ 913              		.cfi_def_cfa_offset 24
+ 914 0004 00AF     		add	r7, sp, #0
+ 915              	.LCFI62:
+ 916              		.cfi_def_cfa_register 7
+ 917 0006 7860     		str	r0, [r7, #4]
+ 170:polyvec.c     ****   unsigned int i;
+ 171:polyvec.c     **** 
+ 172:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 918              		.loc 1 172 9
+ 919 0008 0023     		movs	r3, #0
+ 920 000a FB60     		str	r3, [r7, #12]
+ 921              		.loc 1 172 3
+ 922 000c 09E0     		b	.L42
+ 923              	.L43:
+ 173:polyvec.c     ****     poly_reduce(&v->vec[i]);
+ 924              		.loc 1 173 5 discriminator 3
+ 925 000e FB68     		ldr	r3, [r7, #12]
+ 926 0010 9B02     		lsls	r3, r3, #10
+ 927 0012 7A68     		ldr	r2, [r7, #4]
+ 928 0014 1344     		add	r3, r3, r2
+ 929 0016 1846     		mov	r0, r3
+ 930 0018 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_reduce
+ 172:polyvec.c     ****     poly_reduce(&v->vec[i]);
+ 931              		.loc 1 172 21 discriminator 3
+ 932 001c FB68     		ldr	r3, [r7, #12]
+ 933 001e 0133     		adds	r3, r3, #1
+ 934 0020 FB60     		str	r3, [r7, #12]
+ 935              	.L42:
+ 172:polyvec.c     ****     poly_reduce(&v->vec[i]);
+ 936              		.loc 1 172 3 discriminator 1
+ 937 0022 FB68     		ldr	r3, [r7, #12]
+ 938 0024 032B     		cmp	r3, #3
+ 939 0026 F2D9     		bls	.L43
+ 174:polyvec.c     **** }
+ 940              		.loc 1 174 1
+ 941 0028 00BF     		nop
+ 942 002a 00BF     		nop
+ 943 002c 1037     		adds	r7, r7, #16
+ 944              	.LCFI63:
+ 945              		.cfi_def_cfa_offset 8
+ 946 002e BD46     		mov	sp, r7
+ 947              	.LCFI64:
+ 948              		.cfi_def_cfa_register 13
+ 949              		@ sp needed
+ 950 0030 80BD     		pop	{r7, pc}
+ 951              		.cfi_endproc
+ 952              	.LFE12:
+ 954              		.section	.text.pqcrystals_dilithium2_refpolyveck_caddq,"ax",%progbits
+ 955              		.align	1
+ 956              		.global	pqcrystals_dilithium2_refpolyveck_caddq
+ 957              		.syntax unified
+ 958              		.thumb
+ 959              		.thumb_func
+ 960              		.fpu softvfp
+ 962              	pqcrystals_dilithium2_refpolyveck_caddq:
+ 963              	.LFB13:
+ 175:polyvec.c     **** 
+ 176:polyvec.c     **** /*************************************************
+ 177:polyvec.c     **** * Name:        polyveck_caddq
+ 178:polyvec.c     **** *
+ 179:polyvec.c     **** * Description: For all coefficients of polynomials in vector of length K
+ 180:polyvec.c     **** *              add Q if coefficient is negative.
+ 181:polyvec.c     **** *
+ 182:polyvec.c     **** * Arguments:   - polyveck *v: pointer to input/output vector
+ 183:polyvec.c     **** **************************************************/
+ 184:polyvec.c     **** void polyveck_caddq(polyveck *v) {
+ 964              		.loc 1 184 34
+ 965              		.cfi_startproc
+ 966              		@ args = 0, pretend = 0, frame = 16
+ 967              		@ frame_needed = 1, uses_anonymous_args = 0
+ 968 0000 80B5     		push	{r7, lr}
+ 969              	.LCFI65:
+ 970              		.cfi_def_cfa_offset 8
+ 971              		.cfi_offset 7, -8
+ 972              		.cfi_offset 14, -4
+ 973 0002 84B0     		sub	sp, sp, #16
+ 974              	.LCFI66:
+ 975              		.cfi_def_cfa_offset 24
+ 976 0004 00AF     		add	r7, sp, #0
+ 977              	.LCFI67:
+ 978              		.cfi_def_cfa_register 7
+ 979 0006 7860     		str	r0, [r7, #4]
+ 185:polyvec.c     ****   unsigned int i;
+ 186:polyvec.c     **** 
+ 187:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 980              		.loc 1 187 9
+ 981 0008 0023     		movs	r3, #0
+ 982 000a FB60     		str	r3, [r7, #12]
+ 983              		.loc 1 187 3
+ 984 000c 09E0     		b	.L45
+ 985              	.L46:
+ 188:polyvec.c     ****     poly_caddq(&v->vec[i]);
+ 986              		.loc 1 188 5 discriminator 3
+ 987 000e FB68     		ldr	r3, [r7, #12]
+ 988 0010 9B02     		lsls	r3, r3, #10
+ 989 0012 7A68     		ldr	r2, [r7, #4]
+ 990 0014 1344     		add	r3, r3, r2
+ 991 0016 1846     		mov	r0, r3
+ 992 0018 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_caddq
+ 187:polyvec.c     ****     poly_caddq(&v->vec[i]);
+ 993              		.loc 1 187 21 discriminator 3
+ 994 001c FB68     		ldr	r3, [r7, #12]
+ 995 001e 0133     		adds	r3, r3, #1
+ 996 0020 FB60     		str	r3, [r7, #12]
+ 997              	.L45:
+ 187:polyvec.c     ****     poly_caddq(&v->vec[i]);
+ 998              		.loc 1 187 3 discriminator 1
+ 999 0022 FB68     		ldr	r3, [r7, #12]
+ 1000 0024 032B     		cmp	r3, #3
+ 1001 0026 F2D9     		bls	.L46
+ 189:polyvec.c     **** }
+ 1002              		.loc 1 189 1
+ 1003 0028 00BF     		nop
+ 1004 002a 00BF     		nop
+ 1005 002c 1037     		adds	r7, r7, #16
+ 1006              	.LCFI68:
+ 1007              		.cfi_def_cfa_offset 8
+ 1008 002e BD46     		mov	sp, r7
+ 1009              	.LCFI69:
+ 1010              		.cfi_def_cfa_register 13
+ 1011              		@ sp needed
+ 1012 0030 80BD     		pop	{r7, pc}
+ 1013              		.cfi_endproc
+ 1014              	.LFE13:
+ 1016              		.section	.text.pqcrystals_dilithium2_refpolyveck_add,"ax",%progbits
+ 1017              		.align	1
+ 1018              		.global	pqcrystals_dilithium2_refpolyveck_add
+ 1019              		.syntax unified
+ 1020              		.thumb
+ 1021              		.thumb_func
+ 1022              		.fpu softvfp
+ 1024              	pqcrystals_dilithium2_refpolyveck_add:
+ 1025              	.LFB14:
+ 190:polyvec.c     **** 
+ 191:polyvec.c     **** /*************************************************
+ 192:polyvec.c     **** * Name:        polyveck_add
+ 193:polyvec.c     **** *
+ 194:polyvec.c     **** * Description: Add vectors of polynomials of length K.
+ 195:polyvec.c     **** *              No modular reduction is performed.
+ 196:polyvec.c     **** *
+ 197:polyvec.c     **** * Arguments:   - polyveck *w: pointer to output vector
+ 198:polyvec.c     **** *              - const polyveck *u: pointer to first summand
+ 199:polyvec.c     **** *              - const polyveck *v: pointer to second summand
+ 200:polyvec.c     **** **************************************************/
+ 201:polyvec.c     **** void polyveck_add(polyveck *w, const polyveck *u, const polyveck *v) {
+ 1026              		.loc 1 201 70
+ 1027              		.cfi_startproc
+ 1028              		@ args = 0, pretend = 0, frame = 24
+ 1029              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1030 0000 80B5     		push	{r7, lr}
+ 1031              	.LCFI70:
+ 1032              		.cfi_def_cfa_offset 8
+ 1033              		.cfi_offset 7, -8
+ 1034              		.cfi_offset 14, -4
+ 1035 0002 86B0     		sub	sp, sp, #24
+ 1036              	.LCFI71:
+ 1037              		.cfi_def_cfa_offset 32
+ 1038 0004 00AF     		add	r7, sp, #0
+ 1039              	.LCFI72:
+ 1040              		.cfi_def_cfa_register 7
+ 1041 0006 F860     		str	r0, [r7, #12]
+ 1042 0008 B960     		str	r1, [r7, #8]
+ 1043 000a 7A60     		str	r2, [r7, #4]
+ 202:polyvec.c     ****   unsigned int i;
+ 203:polyvec.c     **** 
+ 204:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1044              		.loc 1 204 9
+ 1045 000c 0023     		movs	r3, #0
+ 1046 000e 7B61     		str	r3, [r7, #20]
+ 1047              		.loc 1 204 3
+ 1048 0010 11E0     		b	.L48
+ 1049              	.L49:
+ 205:polyvec.c     ****     poly_add(&w->vec[i], &u->vec[i], &v->vec[i]);
+ 1050              		.loc 1 205 5 discriminator 3
+ 1051 0012 7B69     		ldr	r3, [r7, #20]
+ 1052 0014 9B02     		lsls	r3, r3, #10
+ 1053 0016 FA68     		ldr	r2, [r7, #12]
+ 1054 0018 D018     		adds	r0, r2, r3
+ 1055 001a 7B69     		ldr	r3, [r7, #20]
+ 1056 001c 9B02     		lsls	r3, r3, #10
+ 1057 001e BA68     		ldr	r2, [r7, #8]
+ 1058 0020 D118     		adds	r1, r2, r3
+ 1059 0022 7B69     		ldr	r3, [r7, #20]
+ 1060 0024 9B02     		lsls	r3, r3, #10
+ 1061 0026 7A68     		ldr	r2, [r7, #4]
+ 1062 0028 1344     		add	r3, r3, r2
+ 1063 002a 1A46     		mov	r2, r3
+ 1064 002c FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_add
+ 204:polyvec.c     ****     poly_add(&w->vec[i], &u->vec[i], &v->vec[i]);
+ 1065              		.loc 1 204 21 discriminator 3
+ 1066 0030 7B69     		ldr	r3, [r7, #20]
+ 1067 0032 0133     		adds	r3, r3, #1
+ 1068 0034 7B61     		str	r3, [r7, #20]
+ 1069              	.L48:
+ 204:polyvec.c     ****     poly_add(&w->vec[i], &u->vec[i], &v->vec[i]);
+ 1070              		.loc 1 204 3 discriminator 1
+ 1071 0036 7B69     		ldr	r3, [r7, #20]
+ 1072 0038 032B     		cmp	r3, #3
+ 1073 003a EAD9     		bls	.L49
+ 206:polyvec.c     **** }
+ 1074              		.loc 1 206 1
+ 1075 003c 00BF     		nop
+ 1076 003e 00BF     		nop
+ 1077 0040 1837     		adds	r7, r7, #24
+ 1078              	.LCFI73:
+ 1079              		.cfi_def_cfa_offset 8
+ 1080 0042 BD46     		mov	sp, r7
+ 1081              	.LCFI74:
+ 1082              		.cfi_def_cfa_register 13
+ 1083              		@ sp needed
+ 1084 0044 80BD     		pop	{r7, pc}
+ 1085              		.cfi_endproc
+ 1086              	.LFE14:
+ 1088              		.section	.text.pqcrystals_dilithium2_refpolyveck_sub,"ax",%progbits
+ 1089              		.align	1
+ 1090              		.global	pqcrystals_dilithium2_refpolyveck_sub
+ 1091              		.syntax unified
+ 1092              		.thumb
+ 1093              		.thumb_func
+ 1094              		.fpu softvfp
+ 1096              	pqcrystals_dilithium2_refpolyveck_sub:
+ 1097              	.LFB15:
+ 207:polyvec.c     **** 
+ 208:polyvec.c     **** /*************************************************
+ 209:polyvec.c     **** * Name:        polyveck_sub
+ 210:polyvec.c     **** *
+ 211:polyvec.c     **** * Description: Subtract vectors of polynomials of length K.
+ 212:polyvec.c     **** *              No modular reduction is performed.
+ 213:polyvec.c     **** *
+ 214:polyvec.c     **** * Arguments:   - polyveck *w: pointer to output vector
+ 215:polyvec.c     **** *              - const polyveck *u: pointer to first input vector
+ 216:polyvec.c     **** *              - const polyveck *v: pointer to second input vector to be
+ 217:polyvec.c     **** *                                   subtracted from first input vector
+ 218:polyvec.c     **** **************************************************/
+ 219:polyvec.c     **** void polyveck_sub(polyveck *w, const polyveck *u, const polyveck *v) {
+ 1098              		.loc 1 219 70
+ 1099              		.cfi_startproc
+ 1100              		@ args = 0, pretend = 0, frame = 24
+ 1101              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1102 0000 80B5     		push	{r7, lr}
+ 1103              	.LCFI75:
+ 1104              		.cfi_def_cfa_offset 8
+ 1105              		.cfi_offset 7, -8
+ 1106              		.cfi_offset 14, -4
+ 1107 0002 86B0     		sub	sp, sp, #24
+ 1108              	.LCFI76:
+ 1109              		.cfi_def_cfa_offset 32
+ 1110 0004 00AF     		add	r7, sp, #0
+ 1111              	.LCFI77:
+ 1112              		.cfi_def_cfa_register 7
+ 1113 0006 F860     		str	r0, [r7, #12]
+ 1114 0008 B960     		str	r1, [r7, #8]
+ 1115 000a 7A60     		str	r2, [r7, #4]
+ 220:polyvec.c     ****   unsigned int i;
+ 221:polyvec.c     **** 
+ 222:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1116              		.loc 1 222 9
+ 1117 000c 0023     		movs	r3, #0
+ 1118 000e 7B61     		str	r3, [r7, #20]
+ 1119              		.loc 1 222 3
+ 1120 0010 11E0     		b	.L51
+ 1121              	.L52:
+ 223:polyvec.c     ****     poly_sub(&w->vec[i], &u->vec[i], &v->vec[i]);
+ 1122              		.loc 1 223 5 discriminator 3
+ 1123 0012 7B69     		ldr	r3, [r7, #20]
+ 1124 0014 9B02     		lsls	r3, r3, #10
+ 1125 0016 FA68     		ldr	r2, [r7, #12]
+ 1126 0018 D018     		adds	r0, r2, r3
+ 1127 001a 7B69     		ldr	r3, [r7, #20]
+ 1128 001c 9B02     		lsls	r3, r3, #10
+ 1129 001e BA68     		ldr	r2, [r7, #8]
+ 1130 0020 D118     		adds	r1, r2, r3
+ 1131 0022 7B69     		ldr	r3, [r7, #20]
+ 1132 0024 9B02     		lsls	r3, r3, #10
+ 1133 0026 7A68     		ldr	r2, [r7, #4]
+ 1134 0028 1344     		add	r3, r3, r2
+ 1135 002a 1A46     		mov	r2, r3
+ 1136 002c FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_sub
+ 222:polyvec.c     ****     poly_sub(&w->vec[i], &u->vec[i], &v->vec[i]);
+ 1137              		.loc 1 222 21 discriminator 3
+ 1138 0030 7B69     		ldr	r3, [r7, #20]
+ 1139 0032 0133     		adds	r3, r3, #1
+ 1140 0034 7B61     		str	r3, [r7, #20]
+ 1141              	.L51:
+ 222:polyvec.c     ****     poly_sub(&w->vec[i], &u->vec[i], &v->vec[i]);
+ 1142              		.loc 1 222 3 discriminator 1
+ 1143 0036 7B69     		ldr	r3, [r7, #20]
+ 1144 0038 032B     		cmp	r3, #3
+ 1145 003a EAD9     		bls	.L52
+ 224:polyvec.c     **** }
+ 1146              		.loc 1 224 1
+ 1147 003c 00BF     		nop
+ 1148 003e 00BF     		nop
+ 1149 0040 1837     		adds	r7, r7, #24
+ 1150              	.LCFI78:
+ 1151              		.cfi_def_cfa_offset 8
+ 1152 0042 BD46     		mov	sp, r7
+ 1153              	.LCFI79:
+ 1154              		.cfi_def_cfa_register 13
+ 1155              		@ sp needed
+ 1156 0044 80BD     		pop	{r7, pc}
+ 1157              		.cfi_endproc
+ 1158              	.LFE15:
+ 1160              		.section	.text.pqcrystals_dilithium2_refpolyveck_shiftl,"ax",%progbits
+ 1161              		.align	1
+ 1162              		.global	pqcrystals_dilithium2_refpolyveck_shiftl
+ 1163              		.syntax unified
+ 1164              		.thumb
+ 1165              		.thumb_func
+ 1166              		.fpu softvfp
+ 1168              	pqcrystals_dilithium2_refpolyveck_shiftl:
+ 1169              	.LFB16:
+ 225:polyvec.c     **** 
+ 226:polyvec.c     **** /*************************************************
+ 227:polyvec.c     **** * Name:        polyveck_shiftl
+ 228:polyvec.c     **** *
+ 229:polyvec.c     **** * Description: Multiply vector of polynomials of Length K by 2^D without modular
+ 230:polyvec.c     **** *              reduction. Assumes input coefficients to be less than 2^{31-D}.
+ 231:polyvec.c     **** *
+ 232:polyvec.c     **** * Arguments:   - polyveck *v: pointer to input/output vector
+ 233:polyvec.c     **** **************************************************/
+ 234:polyvec.c     **** void polyveck_shiftl(polyveck *v) {
+ 1170              		.loc 1 234 35
+ 1171              		.cfi_startproc
+ 1172              		@ args = 0, pretend = 0, frame = 16
+ 1173              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1174 0000 80B5     		push	{r7, lr}
+ 1175              	.LCFI80:
+ 1176              		.cfi_def_cfa_offset 8
+ 1177              		.cfi_offset 7, -8
+ 1178              		.cfi_offset 14, -4
+ 1179 0002 84B0     		sub	sp, sp, #16
+ 1180              	.LCFI81:
+ 1181              		.cfi_def_cfa_offset 24
+ 1182 0004 00AF     		add	r7, sp, #0
+ 1183              	.LCFI82:
+ 1184              		.cfi_def_cfa_register 7
+ 1185 0006 7860     		str	r0, [r7, #4]
+ 235:polyvec.c     ****   unsigned int i;
+ 236:polyvec.c     **** 
+ 237:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1186              		.loc 1 237 9
+ 1187 0008 0023     		movs	r3, #0
+ 1188 000a FB60     		str	r3, [r7, #12]
+ 1189              		.loc 1 237 3
+ 1190 000c 09E0     		b	.L54
+ 1191              	.L55:
+ 238:polyvec.c     ****     poly_shiftl(&v->vec[i]);
+ 1192              		.loc 1 238 5 discriminator 3
+ 1193 000e FB68     		ldr	r3, [r7, #12]
+ 1194 0010 9B02     		lsls	r3, r3, #10
+ 1195 0012 7A68     		ldr	r2, [r7, #4]
+ 1196 0014 1344     		add	r3, r3, r2
+ 1197 0016 1846     		mov	r0, r3
+ 1198 0018 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_shiftl
+ 237:polyvec.c     ****     poly_shiftl(&v->vec[i]);
+ 1199              		.loc 1 237 21 discriminator 3
+ 1200 001c FB68     		ldr	r3, [r7, #12]
+ 1201 001e 0133     		adds	r3, r3, #1
+ 1202 0020 FB60     		str	r3, [r7, #12]
+ 1203              	.L54:
+ 237:polyvec.c     ****     poly_shiftl(&v->vec[i]);
+ 1204              		.loc 1 237 3 discriminator 1
+ 1205 0022 FB68     		ldr	r3, [r7, #12]
+ 1206 0024 032B     		cmp	r3, #3
+ 1207 0026 F2D9     		bls	.L55
+ 239:polyvec.c     **** }
+ 1208              		.loc 1 239 1
+ 1209 0028 00BF     		nop
+ 1210 002a 00BF     		nop
+ 1211 002c 1037     		adds	r7, r7, #16
+ 1212              	.LCFI83:
+ 1213              		.cfi_def_cfa_offset 8
+ 1214 002e BD46     		mov	sp, r7
+ 1215              	.LCFI84:
+ 1216              		.cfi_def_cfa_register 13
+ 1217              		@ sp needed
+ 1218 0030 80BD     		pop	{r7, pc}
+ 1219              		.cfi_endproc
+ 1220              	.LFE16:
+ 1222              		.section	.text.pqcrystals_dilithium2_refpolyveck_ntt,"ax",%progbits
+ 1223              		.align	1
+ 1224              		.global	pqcrystals_dilithium2_refpolyveck_ntt
+ 1225              		.syntax unified
+ 1226              		.thumb
+ 1227              		.thumb_func
+ 1228              		.fpu softvfp
+ 1230              	pqcrystals_dilithium2_refpolyveck_ntt:
+ 1231              	.LFB17:
+ 240:polyvec.c     **** 
+ 241:polyvec.c     **** /*************************************************
+ 242:polyvec.c     **** * Name:        polyveck_ntt
+ 243:polyvec.c     **** *
+ 244:polyvec.c     **** * Description: Forward NTT of all polynomials in vector of length K. Output
+ 245:polyvec.c     **** *              coefficients can be up to 16*Q larger than input coefficients.
+ 246:polyvec.c     **** *
+ 247:polyvec.c     **** * Arguments:   - polyveck *v: pointer to input/output vector
+ 248:polyvec.c     **** **************************************************/
+ 249:polyvec.c     **** void polyveck_ntt(polyveck *v) {
+ 1232              		.loc 1 249 32
+ 1233              		.cfi_startproc
+ 1234              		@ args = 0, pretend = 0, frame = 16
+ 1235              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1236 0000 80B5     		push	{r7, lr}
+ 1237              	.LCFI85:
+ 1238              		.cfi_def_cfa_offset 8
+ 1239              		.cfi_offset 7, -8
+ 1240              		.cfi_offset 14, -4
+ 1241 0002 84B0     		sub	sp, sp, #16
+ 1242              	.LCFI86:
+ 1243              		.cfi_def_cfa_offset 24
+ 1244 0004 00AF     		add	r7, sp, #0
+ 1245              	.LCFI87:
+ 1246              		.cfi_def_cfa_register 7
+ 1247 0006 7860     		str	r0, [r7, #4]
+ 250:polyvec.c     ****   unsigned int i;
+ 251:polyvec.c     **** 
+ 252:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1248              		.loc 1 252 9
+ 1249 0008 0023     		movs	r3, #0
+ 1250 000a FB60     		str	r3, [r7, #12]
+ 1251              		.loc 1 252 3
+ 1252 000c 09E0     		b	.L57
+ 1253              	.L58:
+ 253:polyvec.c     ****     poly_ntt(&v->vec[i]);
+ 1254              		.loc 1 253 5 discriminator 3
+ 1255 000e FB68     		ldr	r3, [r7, #12]
+ 1256 0010 9B02     		lsls	r3, r3, #10
+ 1257 0012 7A68     		ldr	r2, [r7, #4]
+ 1258 0014 1344     		add	r3, r3, r2
+ 1259 0016 1846     		mov	r0, r3
+ 1260 0018 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_ntt
+ 252:polyvec.c     ****     poly_ntt(&v->vec[i]);
+ 1261              		.loc 1 252 21 discriminator 3
+ 1262 001c FB68     		ldr	r3, [r7, #12]
+ 1263 001e 0133     		adds	r3, r3, #1
+ 1264 0020 FB60     		str	r3, [r7, #12]
+ 1265              	.L57:
+ 252:polyvec.c     ****     poly_ntt(&v->vec[i]);
+ 1266              		.loc 1 252 3 discriminator 1
+ 1267 0022 FB68     		ldr	r3, [r7, #12]
+ 1268 0024 032B     		cmp	r3, #3
+ 1269 0026 F2D9     		bls	.L58
+ 254:polyvec.c     **** }
+ 1270              		.loc 1 254 1
+ 1271 0028 00BF     		nop
+ 1272 002a 00BF     		nop
+ 1273 002c 1037     		adds	r7, r7, #16
+ 1274              	.LCFI88:
+ 1275              		.cfi_def_cfa_offset 8
+ 1276 002e BD46     		mov	sp, r7
+ 1277              	.LCFI89:
+ 1278              		.cfi_def_cfa_register 13
+ 1279              		@ sp needed
+ 1280 0030 80BD     		pop	{r7, pc}
+ 1281              		.cfi_endproc
+ 1282              	.LFE17:
+ 1284              		.section	.text.pqcrystals_dilithium2_refpolyveck_invntt_tomont,"ax",%progbits
+ 1285              		.align	1
+ 1286              		.global	pqcrystals_dilithium2_refpolyveck_invntt_tomont
+ 1287              		.syntax unified
+ 1288              		.thumb
+ 1289              		.thumb_func
+ 1290              		.fpu softvfp
+ 1292              	pqcrystals_dilithium2_refpolyveck_invntt_tomont:
+ 1293              	.LFB18:
+ 255:polyvec.c     **** 
+ 256:polyvec.c     **** /*************************************************
+ 257:polyvec.c     **** * Name:        polyveck_invntt_tomont
+ 258:polyvec.c     **** *
+ 259:polyvec.c     **** * Description: Inverse NTT and multiplication by 2^{32} of polynomials
+ 260:polyvec.c     **** *              in vector of length K. Input coefficients need to be less
+ 261:polyvec.c     **** *              than 2*Q.
+ 262:polyvec.c     **** *
+ 263:polyvec.c     **** * Arguments:   - polyveck *v: pointer to input/output vector
+ 264:polyvec.c     **** **************************************************/
+ 265:polyvec.c     **** void polyveck_invntt_tomont(polyveck *v) {
+ 1294              		.loc 1 265 42
+ 1295              		.cfi_startproc
+ 1296              		@ args = 0, pretend = 0, frame = 16
+ 1297              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1298 0000 80B5     		push	{r7, lr}
+ 1299              	.LCFI90:
+ 1300              		.cfi_def_cfa_offset 8
+ 1301              		.cfi_offset 7, -8
+ 1302              		.cfi_offset 14, -4
+ 1303 0002 84B0     		sub	sp, sp, #16
+ 1304              	.LCFI91:
+ 1305              		.cfi_def_cfa_offset 24
+ 1306 0004 00AF     		add	r7, sp, #0
+ 1307              	.LCFI92:
+ 1308              		.cfi_def_cfa_register 7
+ 1309 0006 7860     		str	r0, [r7, #4]
+ 266:polyvec.c     ****   unsigned int i;
+ 267:polyvec.c     **** 
+ 268:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1310              		.loc 1 268 9
+ 1311 0008 0023     		movs	r3, #0
+ 1312 000a FB60     		str	r3, [r7, #12]
+ 1313              		.loc 1 268 3
+ 1314 000c 09E0     		b	.L60
+ 1315              	.L61:
+ 269:polyvec.c     ****     poly_invntt_tomont(&v->vec[i]);
+ 1316              		.loc 1 269 5 discriminator 3
+ 1317 000e FB68     		ldr	r3, [r7, #12]
+ 1318 0010 9B02     		lsls	r3, r3, #10
+ 1319 0012 7A68     		ldr	r2, [r7, #4]
+ 1320 0014 1344     		add	r3, r3, r2
+ 1321 0016 1846     		mov	r0, r3
+ 1322 0018 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_invntt_tomont
+ 268:polyvec.c     ****     poly_invntt_tomont(&v->vec[i]);
+ 1323              		.loc 1 268 21 discriminator 3
+ 1324 001c FB68     		ldr	r3, [r7, #12]
+ 1325 001e 0133     		adds	r3, r3, #1
+ 1326 0020 FB60     		str	r3, [r7, #12]
+ 1327              	.L60:
+ 268:polyvec.c     ****     poly_invntt_tomont(&v->vec[i]);
+ 1328              		.loc 1 268 3 discriminator 1
+ 1329 0022 FB68     		ldr	r3, [r7, #12]
+ 1330 0024 032B     		cmp	r3, #3
+ 1331 0026 F2D9     		bls	.L61
+ 270:polyvec.c     **** }
+ 1332              		.loc 1 270 1
+ 1333 0028 00BF     		nop
+ 1334 002a 00BF     		nop
+ 1335 002c 1037     		adds	r7, r7, #16
+ 1336              	.LCFI93:
+ 1337              		.cfi_def_cfa_offset 8
+ 1338 002e BD46     		mov	sp, r7
+ 1339              	.LCFI94:
+ 1340              		.cfi_def_cfa_register 13
+ 1341              		@ sp needed
+ 1342 0030 80BD     		pop	{r7, pc}
+ 1343              		.cfi_endproc
+ 1344              	.LFE18:
+ 1346              		.section	.text.pqcrystals_dilithium2_refpolyveck_pointwise_poly_montgomery,"ax",%progbits
+ 1347              		.align	1
+ 1348              		.global	pqcrystals_dilithium2_refpolyveck_pointwise_poly_montgomery
+ 1349              		.syntax unified
+ 1350              		.thumb
+ 1351              		.thumb_func
+ 1352              		.fpu softvfp
+ 1354              	pqcrystals_dilithium2_refpolyveck_pointwise_poly_montgomery:
+ 1355              	.LFB19:
+ 271:polyvec.c     **** 
+ 272:polyvec.c     **** void polyveck_pointwise_poly_montgomery(polyveck *r, const poly *a, const polyveck *v) {
+ 1356              		.loc 1 272 88
+ 1357              		.cfi_startproc
+ 1358              		@ args = 0, pretend = 0, frame = 24
+ 1359              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1360 0000 80B5     		push	{r7, lr}
+ 1361              	.LCFI95:
+ 1362              		.cfi_def_cfa_offset 8
+ 1363              		.cfi_offset 7, -8
+ 1364              		.cfi_offset 14, -4
+ 1365 0002 86B0     		sub	sp, sp, #24
+ 1366              	.LCFI96:
+ 1367              		.cfi_def_cfa_offset 32
+ 1368 0004 00AF     		add	r7, sp, #0
+ 1369              	.LCFI97:
+ 1370              		.cfi_def_cfa_register 7
+ 1371 0006 F860     		str	r0, [r7, #12]
+ 1372 0008 B960     		str	r1, [r7, #8]
+ 1373 000a 7A60     		str	r2, [r7, #4]
+ 273:polyvec.c     ****   unsigned int i;
+ 274:polyvec.c     **** 
+ 275:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1374              		.loc 1 275 9
+ 1375 000c 0023     		movs	r3, #0
+ 1376 000e 7B61     		str	r3, [r7, #20]
+ 1377              		.loc 1 275 3
+ 1378 0010 0EE0     		b	.L63
+ 1379              	.L64:
+ 276:polyvec.c     ****     poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
+ 1380              		.loc 1 276 5 discriminator 3
+ 1381 0012 7B69     		ldr	r3, [r7, #20]
+ 1382 0014 9B02     		lsls	r3, r3, #10
+ 1383 0016 FA68     		ldr	r2, [r7, #12]
+ 1384 0018 D018     		adds	r0, r2, r3
+ 1385 001a 7B69     		ldr	r3, [r7, #20]
+ 1386 001c 9B02     		lsls	r3, r3, #10
+ 1387 001e 7A68     		ldr	r2, [r7, #4]
+ 1388 0020 1344     		add	r3, r3, r2
+ 1389 0022 1A46     		mov	r2, r3
+ 1390 0024 B968     		ldr	r1, [r7, #8]
+ 1391 0026 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_pointwise_montgomery
+ 275:polyvec.c     ****     poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
+ 1392              		.loc 1 275 21 discriminator 3
+ 1393 002a 7B69     		ldr	r3, [r7, #20]
+ 1394 002c 0133     		adds	r3, r3, #1
+ 1395 002e 7B61     		str	r3, [r7, #20]
+ 1396              	.L63:
+ 275:polyvec.c     ****     poly_pointwise_montgomery(&r->vec[i], a, &v->vec[i]);
+ 1397              		.loc 1 275 3 discriminator 1
+ 1398 0030 7B69     		ldr	r3, [r7, #20]
+ 1399 0032 032B     		cmp	r3, #3
+ 1400 0034 EDD9     		bls	.L64
+ 277:polyvec.c     **** }
+ 1401              		.loc 1 277 1
+ 1402 0036 00BF     		nop
+ 1403 0038 00BF     		nop
+ 1404 003a 1837     		adds	r7, r7, #24
+ 1405              	.LCFI98:
+ 1406              		.cfi_def_cfa_offset 8
+ 1407 003c BD46     		mov	sp, r7
+ 1408              	.LCFI99:
+ 1409              		.cfi_def_cfa_register 13
+ 1410              		@ sp needed
+ 1411 003e 80BD     		pop	{r7, pc}
+ 1412              		.cfi_endproc
+ 1413              	.LFE19:
+ 1415              		.section	.text.pqcrystals_dilithium2_refpolyveck_chknorm,"ax",%progbits
+ 1416              		.align	1
+ 1417              		.global	pqcrystals_dilithium2_refpolyveck_chknorm
+ 1418              		.syntax unified
+ 1419              		.thumb
+ 1420              		.thumb_func
+ 1421              		.fpu softvfp
+ 1423              	pqcrystals_dilithium2_refpolyveck_chknorm:
+ 1424              	.LFB20:
+ 278:polyvec.c     **** 
+ 279:polyvec.c     **** 
+ 280:polyvec.c     **** /*************************************************
+ 281:polyvec.c     **** * Name:        polyveck_chknorm
+ 282:polyvec.c     **** *
+ 283:polyvec.c     **** * Description: Check infinity norm of polynomials in vector of length K.
+ 284:polyvec.c     **** *              Assumes input polyveck to be reduced by polyveck_reduce().
+ 285:polyvec.c     **** *
+ 286:polyvec.c     **** * Arguments:   - const polyveck *v: pointer to vector
+ 287:polyvec.c     **** *              - int32_t B: norm bound
+ 288:polyvec.c     **** *
+ 289:polyvec.c     **** * Returns 0 if norm of all polynomials are strictly smaller than B <= (Q-1)/8
+ 290:polyvec.c     **** * and 1 otherwise.
+ 291:polyvec.c     **** **************************************************/
+ 292:polyvec.c     **** int polyveck_chknorm(const polyveck *v, int32_t bound) {
+ 1425              		.loc 1 292 56
+ 1426              		.cfi_startproc
+ 1427              		@ args = 0, pretend = 0, frame = 16
+ 1428              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1429 0000 80B5     		push	{r7, lr}
+ 1430              	.LCFI100:
+ 1431              		.cfi_def_cfa_offset 8
+ 1432              		.cfi_offset 7, -8
+ 1433              		.cfi_offset 14, -4
+ 1434 0002 84B0     		sub	sp, sp, #16
+ 1435              	.LCFI101:
+ 1436              		.cfi_def_cfa_offset 24
+ 1437 0004 00AF     		add	r7, sp, #0
+ 1438              	.LCFI102:
+ 1439              		.cfi_def_cfa_register 7
+ 1440 0006 7860     		str	r0, [r7, #4]
+ 1441 0008 3960     		str	r1, [r7]
+ 293:polyvec.c     ****   unsigned int i;
+ 294:polyvec.c     **** 
+ 295:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1442              		.loc 1 295 9
+ 1443 000a 0023     		movs	r3, #0
+ 1444 000c FB60     		str	r3, [r7, #12]
+ 1445              		.loc 1 295 3
+ 1446 000e 0FE0     		b	.L66
+ 1447              	.L69:
+ 296:polyvec.c     ****     if(poly_chknorm(&v->vec[i], bound))
+ 1448              		.loc 1 296 8
+ 1449 0010 FB68     		ldr	r3, [r7, #12]
+ 1450 0012 9B02     		lsls	r3, r3, #10
+ 1451 0014 7A68     		ldr	r2, [r7, #4]
+ 1452 0016 1344     		add	r3, r3, r2
+ 1453 0018 3968     		ldr	r1, [r7]
+ 1454 001a 1846     		mov	r0, r3
+ 1455 001c FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_chknorm
+ 1456 0020 0346     		mov	r3, r0
+ 1457              		.loc 1 296 7
+ 1458 0022 002B     		cmp	r3, #0
+ 1459 0024 01D0     		beq	.L67
+ 297:polyvec.c     ****       return 1;
+ 1460              		.loc 1 297 14
+ 1461 0026 0123     		movs	r3, #1
+ 1462 0028 06E0     		b	.L68
+ 1463              	.L67:
+ 295:polyvec.c     ****     if(poly_chknorm(&v->vec[i], bound))
+ 1464              		.loc 1 295 21 discriminator 2
+ 1465 002a FB68     		ldr	r3, [r7, #12]
+ 1466 002c 0133     		adds	r3, r3, #1
+ 1467 002e FB60     		str	r3, [r7, #12]
+ 1468              	.L66:
+ 295:polyvec.c     ****     if(poly_chknorm(&v->vec[i], bound))
+ 1469              		.loc 1 295 3 discriminator 1
+ 1470 0030 FB68     		ldr	r3, [r7, #12]
+ 1471 0032 032B     		cmp	r3, #3
+ 1472 0034 ECD9     		bls	.L69
+ 298:polyvec.c     **** 
+ 299:polyvec.c     ****   return 0;
+ 1473              		.loc 1 299 10
+ 1474 0036 0023     		movs	r3, #0
+ 1475              	.L68:
+ 300:polyvec.c     **** }
+ 1476              		.loc 1 300 1
+ 1477 0038 1846     		mov	r0, r3
+ 1478 003a 1037     		adds	r7, r7, #16
+ 1479              	.LCFI103:
+ 1480              		.cfi_def_cfa_offset 8
+ 1481 003c BD46     		mov	sp, r7
+ 1482              	.LCFI104:
+ 1483              		.cfi_def_cfa_register 13
+ 1484              		@ sp needed
+ 1485 003e 80BD     		pop	{r7, pc}
+ 1486              		.cfi_endproc
+ 1487              	.LFE20:
+ 1489              		.section	.text.pqcrystals_dilithium2_refpolyveck_power2round,"ax",%progbits
+ 1490              		.align	1
+ 1491              		.global	pqcrystals_dilithium2_refpolyveck_power2round
+ 1492              		.syntax unified
+ 1493              		.thumb
+ 1494              		.thumb_func
+ 1495              		.fpu softvfp
+ 1497              	pqcrystals_dilithium2_refpolyveck_power2round:
+ 1498              	.LFB21:
+ 301:polyvec.c     **** 
+ 302:polyvec.c     **** /*************************************************
+ 303:polyvec.c     **** * Name:        polyveck_power2round
+ 304:polyvec.c     **** *
+ 305:polyvec.c     **** * Description: For all coefficients a of polynomials in vector of length K,
+ 306:polyvec.c     **** *              compute a0, a1 such that a mod^+ Q = a1*2^D + a0
+ 307:polyvec.c     **** *              with -2^{D-1} < a0 <= 2^{D-1}. Assumes coefficients to be
+ 308:polyvec.c     **** *              standard representatives.
+ 309:polyvec.c     **** *
+ 310:polyvec.c     **** * Arguments:   - polyveck *v1: pointer to output vector of polynomials with
+ 311:polyvec.c     **** *                              coefficients a1
+ 312:polyvec.c     **** *              - polyveck *v0: pointer to output vector of polynomials with
+ 313:polyvec.c     **** *                              coefficients a0
+ 314:polyvec.c     **** *              - const polyveck *v: pointer to input vector
+ 315:polyvec.c     **** **************************************************/
+ 316:polyvec.c     **** void polyveck_power2round(polyveck *v1, polyveck *v0, const polyveck *v) {
+ 1499              		.loc 1 316 74
+ 1500              		.cfi_startproc
+ 1501              		@ args = 0, pretend = 0, frame = 24
+ 1502              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1503 0000 80B5     		push	{r7, lr}
+ 1504              	.LCFI105:
+ 1505              		.cfi_def_cfa_offset 8
+ 1506              		.cfi_offset 7, -8
+ 1507              		.cfi_offset 14, -4
+ 1508 0002 86B0     		sub	sp, sp, #24
+ 1509              	.LCFI106:
+ 1510              		.cfi_def_cfa_offset 32
+ 1511 0004 00AF     		add	r7, sp, #0
+ 1512              	.LCFI107:
+ 1513              		.cfi_def_cfa_register 7
+ 1514 0006 F860     		str	r0, [r7, #12]
+ 1515 0008 B960     		str	r1, [r7, #8]
+ 1516 000a 7A60     		str	r2, [r7, #4]
+ 317:polyvec.c     ****   unsigned int i;
+ 318:polyvec.c     **** 
+ 319:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1517              		.loc 1 319 9
+ 1518 000c 0023     		movs	r3, #0
+ 1519 000e 7B61     		str	r3, [r7, #20]
+ 1520              		.loc 1 319 3
+ 1521 0010 11E0     		b	.L71
+ 1522              	.L72:
+ 320:polyvec.c     ****     poly_power2round(&v1->vec[i], &v0->vec[i], &v->vec[i]);
+ 1523              		.loc 1 320 5 discriminator 3
+ 1524 0012 7B69     		ldr	r3, [r7, #20]
+ 1525 0014 9B02     		lsls	r3, r3, #10
+ 1526 0016 FA68     		ldr	r2, [r7, #12]
+ 1527 0018 D018     		adds	r0, r2, r3
+ 1528 001a 7B69     		ldr	r3, [r7, #20]
+ 1529 001c 9B02     		lsls	r3, r3, #10
+ 1530 001e BA68     		ldr	r2, [r7, #8]
+ 1531 0020 D118     		adds	r1, r2, r3
+ 1532 0022 7B69     		ldr	r3, [r7, #20]
+ 1533 0024 9B02     		lsls	r3, r3, #10
+ 1534 0026 7A68     		ldr	r2, [r7, #4]
+ 1535 0028 1344     		add	r3, r3, r2
+ 1536 002a 1A46     		mov	r2, r3
+ 1537 002c FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_power2round
+ 319:polyvec.c     ****     poly_power2round(&v1->vec[i], &v0->vec[i], &v->vec[i]);
+ 1538              		.loc 1 319 21 discriminator 3
+ 1539 0030 7B69     		ldr	r3, [r7, #20]
+ 1540 0032 0133     		adds	r3, r3, #1
+ 1541 0034 7B61     		str	r3, [r7, #20]
+ 1542              	.L71:
+ 319:polyvec.c     ****     poly_power2round(&v1->vec[i], &v0->vec[i], &v->vec[i]);
+ 1543              		.loc 1 319 3 discriminator 1
+ 1544 0036 7B69     		ldr	r3, [r7, #20]
+ 1545 0038 032B     		cmp	r3, #3
+ 1546 003a EAD9     		bls	.L72
+ 321:polyvec.c     **** }
+ 1547              		.loc 1 321 1
+ 1548 003c 00BF     		nop
+ 1549 003e 00BF     		nop
+ 1550 0040 1837     		adds	r7, r7, #24
+ 1551              	.LCFI108:
+ 1552              		.cfi_def_cfa_offset 8
+ 1553 0042 BD46     		mov	sp, r7
+ 1554              	.LCFI109:
+ 1555              		.cfi_def_cfa_register 13
+ 1556              		@ sp needed
+ 1557 0044 80BD     		pop	{r7, pc}
+ 1558              		.cfi_endproc
+ 1559              	.LFE21:
+ 1561              		.section	.text.pqcrystals_dilithium2_refpolyveck_decompose,"ax",%progbits
+ 1562              		.align	1
+ 1563              		.global	pqcrystals_dilithium2_refpolyveck_decompose
+ 1564              		.syntax unified
+ 1565              		.thumb
+ 1566              		.thumb_func
+ 1567              		.fpu softvfp
+ 1569              	pqcrystals_dilithium2_refpolyveck_decompose:
+ 1570              	.LFB22:
+ 322:polyvec.c     **** 
+ 323:polyvec.c     **** /*************************************************
+ 324:polyvec.c     **** * Name:        polyveck_decompose
+ 325:polyvec.c     **** *
+ 326:polyvec.c     **** * Description: For all coefficients a of polynomials in vector of length K,
+ 327:polyvec.c     **** *              compute high and low bits a0, a1 such a mod^+ Q = a1*ALPHA + a0
+ 328:polyvec.c     **** *              with -ALPHA/2 < a0 <= ALPHA/2 except a1 = (Q-1)/ALPHA where we
+ 329:polyvec.c     **** *              set a1 = 0 and -ALPHA/2 <= a0 = a mod Q - Q < 0.
+ 330:polyvec.c     **** *              Assumes coefficients to be standard representatives.
+ 331:polyvec.c     **** *
+ 332:polyvec.c     **** * Arguments:   - polyveck *v1: pointer to output vector of polynomials with
+ 333:polyvec.c     **** *                              coefficients a1
+ 334:polyvec.c     **** *              - polyveck *v0: pointer to output vector of polynomials with
+ 335:polyvec.c     **** *                              coefficients a0
+ 336:polyvec.c     **** *              - const polyveck *v: pointer to input vector
+ 337:polyvec.c     **** **************************************************/
+ 338:polyvec.c     **** void polyveck_decompose(polyveck *v1, polyveck *v0, const polyveck *v) {
+ 1571              		.loc 1 338 72
+ 1572              		.cfi_startproc
+ 1573              		@ args = 0, pretend = 0, frame = 24
+ 1574              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1575 0000 80B5     		push	{r7, lr}
+ 1576              	.LCFI110:
+ 1577              		.cfi_def_cfa_offset 8
+ 1578              		.cfi_offset 7, -8
+ 1579              		.cfi_offset 14, -4
+ 1580 0002 86B0     		sub	sp, sp, #24
+ 1581              	.LCFI111:
+ 1582              		.cfi_def_cfa_offset 32
+ 1583 0004 00AF     		add	r7, sp, #0
+ 1584              	.LCFI112:
+ 1585              		.cfi_def_cfa_register 7
+ 1586 0006 F860     		str	r0, [r7, #12]
+ 1587 0008 B960     		str	r1, [r7, #8]
+ 1588 000a 7A60     		str	r2, [r7, #4]
+ 339:polyvec.c     ****   unsigned int i;
+ 340:polyvec.c     **** 
+ 341:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1589              		.loc 1 341 9
+ 1590 000c 0023     		movs	r3, #0
+ 1591 000e 7B61     		str	r3, [r7, #20]
+ 1592              		.loc 1 341 3
+ 1593 0010 11E0     		b	.L74
+ 1594              	.L75:
+ 342:polyvec.c     ****     poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
+ 1595              		.loc 1 342 5 discriminator 3
+ 1596 0012 7B69     		ldr	r3, [r7, #20]
+ 1597 0014 9B02     		lsls	r3, r3, #10
+ 1598 0016 FA68     		ldr	r2, [r7, #12]
+ 1599 0018 D018     		adds	r0, r2, r3
+ 1600 001a 7B69     		ldr	r3, [r7, #20]
+ 1601 001c 9B02     		lsls	r3, r3, #10
+ 1602 001e BA68     		ldr	r2, [r7, #8]
+ 1603 0020 D118     		adds	r1, r2, r3
+ 1604 0022 7B69     		ldr	r3, [r7, #20]
+ 1605 0024 9B02     		lsls	r3, r3, #10
+ 1606 0026 7A68     		ldr	r2, [r7, #4]
+ 1607 0028 1344     		add	r3, r3, r2
+ 1608 002a 1A46     		mov	r2, r3
+ 1609 002c FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_decompose
+ 341:polyvec.c     ****     poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
+ 1610              		.loc 1 341 21 discriminator 3
+ 1611 0030 7B69     		ldr	r3, [r7, #20]
+ 1612 0032 0133     		adds	r3, r3, #1
+ 1613 0034 7B61     		str	r3, [r7, #20]
+ 1614              	.L74:
+ 341:polyvec.c     ****     poly_decompose(&v1->vec[i], &v0->vec[i], &v->vec[i]);
+ 1615              		.loc 1 341 3 discriminator 1
+ 1616 0036 7B69     		ldr	r3, [r7, #20]
+ 1617 0038 032B     		cmp	r3, #3
+ 1618 003a EAD9     		bls	.L75
+ 343:polyvec.c     **** }
+ 1619              		.loc 1 343 1
+ 1620 003c 00BF     		nop
+ 1621 003e 00BF     		nop
+ 1622 0040 1837     		adds	r7, r7, #24
+ 1623              	.LCFI113:
+ 1624              		.cfi_def_cfa_offset 8
+ 1625 0042 BD46     		mov	sp, r7
+ 1626              	.LCFI114:
+ 1627              		.cfi_def_cfa_register 13
+ 1628              		@ sp needed
+ 1629 0044 80BD     		pop	{r7, pc}
+ 1630              		.cfi_endproc
+ 1631              	.LFE22:
+ 1633              		.section	.text.pqcrystals_dilithium2_refpolyveck_make_hint,"ax",%progbits
+ 1634              		.align	1
+ 1635              		.global	pqcrystals_dilithium2_refpolyveck_make_hint
+ 1636              		.syntax unified
+ 1637              		.thumb
+ 1638              		.thumb_func
+ 1639              		.fpu softvfp
+ 1641              	pqcrystals_dilithium2_refpolyveck_make_hint:
+ 1642              	.LFB23:
+ 344:polyvec.c     **** 
+ 345:polyvec.c     **** /*************************************************
+ 346:polyvec.c     **** * Name:        polyveck_make_hint
+ 347:polyvec.c     **** *
+ 348:polyvec.c     **** * Description: Compute hint vector.
+ 349:polyvec.c     **** *
+ 350:polyvec.c     **** * Arguments:   - polyveck *h: pointer to output vector
+ 351:polyvec.c     **** *              - const polyveck *v0: pointer to low part of input vector
+ 352:polyvec.c     **** *              - const polyveck *v1: pointer to high part of input vector
+ 353:polyvec.c     **** *
+ 354:polyvec.c     **** * Returns number of 1 bits.
+ 355:polyvec.c     **** **************************************************/
+ 356:polyvec.c     **** unsigned int polyveck_make_hint(polyveck *h,
+ 357:polyvec.c     ****                                 const polyveck *v0,
+ 358:polyvec.c     ****                                 const polyveck *v1)
+ 359:polyvec.c     **** {
+ 1643              		.loc 1 359 1
+ 1644              		.cfi_startproc
+ 1645              		@ args = 0, pretend = 0, frame = 24
+ 1646              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1647 0000 80B5     		push	{r7, lr}
+ 1648              	.LCFI115:
+ 1649              		.cfi_def_cfa_offset 8
+ 1650              		.cfi_offset 7, -8
+ 1651              		.cfi_offset 14, -4
+ 1652 0002 86B0     		sub	sp, sp, #24
+ 1653              	.LCFI116:
+ 1654              		.cfi_def_cfa_offset 32
+ 1655 0004 00AF     		add	r7, sp, #0
+ 1656              	.LCFI117:
+ 1657              		.cfi_def_cfa_register 7
+ 1658 0006 F860     		str	r0, [r7, #12]
+ 1659 0008 B960     		str	r1, [r7, #8]
+ 1660 000a 7A60     		str	r2, [r7, #4]
+ 360:polyvec.c     ****   unsigned int i, s = 0;
+ 1661              		.loc 1 360 19
+ 1662 000c 0023     		movs	r3, #0
+ 1663 000e 3B61     		str	r3, [r7, #16]
+ 361:polyvec.c     **** 
+ 362:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1664              		.loc 1 362 9
+ 1665 0010 0023     		movs	r3, #0
+ 1666 0012 7B61     		str	r3, [r7, #20]
+ 1667              		.loc 1 362 3
+ 1668 0014 15E0     		b	.L77
+ 1669              	.L78:
+ 363:polyvec.c     ****     s += poly_make_hint(&h->vec[i], &v0->vec[i], &v1->vec[i]);
+ 1670              		.loc 1 363 10 discriminator 3
+ 1671 0016 7B69     		ldr	r3, [r7, #20]
+ 1672 0018 9B02     		lsls	r3, r3, #10
+ 1673 001a FA68     		ldr	r2, [r7, #12]
+ 1674 001c D018     		adds	r0, r2, r3
+ 1675 001e 7B69     		ldr	r3, [r7, #20]
+ 1676 0020 9B02     		lsls	r3, r3, #10
+ 1677 0022 BA68     		ldr	r2, [r7, #8]
+ 1678 0024 D118     		adds	r1, r2, r3
+ 1679 0026 7B69     		ldr	r3, [r7, #20]
+ 1680 0028 9B02     		lsls	r3, r3, #10
+ 1681 002a 7A68     		ldr	r2, [r7, #4]
+ 1682 002c 1344     		add	r3, r3, r2
+ 1683 002e 1A46     		mov	r2, r3
+ 1684 0030 FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_make_hint
+ 1685 0034 0246     		mov	r2, r0
+ 1686              		.loc 1 363 7 discriminator 3
+ 1687 0036 3B69     		ldr	r3, [r7, #16]
+ 1688 0038 1344     		add	r3, r3, r2
+ 1689 003a 3B61     		str	r3, [r7, #16]
+ 362:polyvec.c     ****     s += poly_make_hint(&h->vec[i], &v0->vec[i], &v1->vec[i]);
+ 1690              		.loc 1 362 21 discriminator 3
+ 1691 003c 7B69     		ldr	r3, [r7, #20]
+ 1692 003e 0133     		adds	r3, r3, #1
+ 1693 0040 7B61     		str	r3, [r7, #20]
+ 1694              	.L77:
+ 362:polyvec.c     ****     s += poly_make_hint(&h->vec[i], &v0->vec[i], &v1->vec[i]);
+ 1695              		.loc 1 362 3 discriminator 1
+ 1696 0042 7B69     		ldr	r3, [r7, #20]
+ 1697 0044 032B     		cmp	r3, #3
+ 1698 0046 E6D9     		bls	.L78
+ 364:polyvec.c     **** 
+ 365:polyvec.c     ****   return s;
+ 1699              		.loc 1 365 10
+ 1700 0048 3B69     		ldr	r3, [r7, #16]
+ 366:polyvec.c     **** }
+ 1701              		.loc 1 366 1
+ 1702 004a 1846     		mov	r0, r3
+ 1703 004c 1837     		adds	r7, r7, #24
+ 1704              	.LCFI118:
+ 1705              		.cfi_def_cfa_offset 8
+ 1706 004e BD46     		mov	sp, r7
+ 1707              	.LCFI119:
+ 1708              		.cfi_def_cfa_register 13
+ 1709              		@ sp needed
+ 1710 0050 80BD     		pop	{r7, pc}
+ 1711              		.cfi_endproc
+ 1712              	.LFE23:
+ 1714              		.section	.text.pqcrystals_dilithium2_refpolyveck_use_hint,"ax",%progbits
+ 1715              		.align	1
+ 1716              		.global	pqcrystals_dilithium2_refpolyveck_use_hint
+ 1717              		.syntax unified
+ 1718              		.thumb
+ 1719              		.thumb_func
+ 1720              		.fpu softvfp
+ 1722              	pqcrystals_dilithium2_refpolyveck_use_hint:
+ 1723              	.LFB24:
+ 367:polyvec.c     **** 
+ 368:polyvec.c     **** /*************************************************
+ 369:polyvec.c     **** * Name:        polyveck_use_hint
+ 370:polyvec.c     **** *
+ 371:polyvec.c     **** * Description: Use hint vector to correct the high bits of input vector.
+ 372:polyvec.c     **** *
+ 373:polyvec.c     **** * Arguments:   - polyveck *w: pointer to output vector of polynomials with
+ 374:polyvec.c     **** *                             corrected high bits
+ 375:polyvec.c     **** *              - const polyveck *u: pointer to input vector
+ 376:polyvec.c     **** *              - const polyveck *h: pointer to input hint vector
+ 377:polyvec.c     **** **************************************************/
+ 378:polyvec.c     **** void polyveck_use_hint(polyveck *w, const polyveck *u, const polyveck *h) {
+ 1724              		.loc 1 378 75
+ 1725              		.cfi_startproc
+ 1726              		@ args = 0, pretend = 0, frame = 24
+ 1727              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1728 0000 80B5     		push	{r7, lr}
+ 1729              	.LCFI120:
+ 1730              		.cfi_def_cfa_offset 8
+ 1731              		.cfi_offset 7, -8
+ 1732              		.cfi_offset 14, -4
+ 1733 0002 86B0     		sub	sp, sp, #24
+ 1734              	.LCFI121:
+ 1735              		.cfi_def_cfa_offset 32
+ 1736 0004 00AF     		add	r7, sp, #0
+ 1737              	.LCFI122:
+ 1738              		.cfi_def_cfa_register 7
+ 1739 0006 F860     		str	r0, [r7, #12]
+ 1740 0008 B960     		str	r1, [r7, #8]
+ 1741 000a 7A60     		str	r2, [r7, #4]
+ 379:polyvec.c     ****   unsigned int i;
+ 380:polyvec.c     **** 
+ 381:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1742              		.loc 1 381 9
+ 1743 000c 0023     		movs	r3, #0
+ 1744 000e 7B61     		str	r3, [r7, #20]
+ 1745              		.loc 1 381 3
+ 1746 0010 11E0     		b	.L81
+ 1747              	.L82:
+ 382:polyvec.c     ****     poly_use_hint(&w->vec[i], &u->vec[i], &h->vec[i]);
+ 1748              		.loc 1 382 5 discriminator 3
+ 1749 0012 7B69     		ldr	r3, [r7, #20]
+ 1750 0014 9B02     		lsls	r3, r3, #10
+ 1751 0016 FA68     		ldr	r2, [r7, #12]
+ 1752 0018 D018     		adds	r0, r2, r3
+ 1753 001a 7B69     		ldr	r3, [r7, #20]
+ 1754 001c 9B02     		lsls	r3, r3, #10
+ 1755 001e BA68     		ldr	r2, [r7, #8]
+ 1756 0020 D118     		adds	r1, r2, r3
+ 1757 0022 7B69     		ldr	r3, [r7, #20]
+ 1758 0024 9B02     		lsls	r3, r3, #10
+ 1759 0026 7A68     		ldr	r2, [r7, #4]
+ 1760 0028 1344     		add	r3, r3, r2
+ 1761 002a 1A46     		mov	r2, r3
+ 1762 002c FFF7FEFF 		bl	pqcrystals_dilithium2_refpoly_use_hint
+ 381:polyvec.c     ****     poly_use_hint(&w->vec[i], &u->vec[i], &h->vec[i]);
+ 1763              		.loc 1 381 21 discriminator 3
+ 1764 0030 7B69     		ldr	r3, [r7, #20]
+ 1765 0032 0133     		adds	r3, r3, #1
+ 1766 0034 7B61     		str	r3, [r7, #20]
+ 1767              	.L81:
+ 381:polyvec.c     ****     poly_use_hint(&w->vec[i], &u->vec[i], &h->vec[i]);
+ 1768              		.loc 1 381 3 discriminator 1
+ 1769 0036 7B69     		ldr	r3, [r7, #20]
+ 1770 0038 032B     		cmp	r3, #3
+ 1771 003a EAD9     		bls	.L82
+ 383:polyvec.c     **** }
+ 1772              		.loc 1 383 1
+ 1773 003c 00BF     		nop
+ 1774 003e 00BF     		nop
+ 1775 0040 1837     		adds	r7, r7, #24
+ 1776              	.LCFI123:
+ 1777              		.cfi_def_cfa_offset 8
+ 1778 0042 BD46     		mov	sp, r7
+ 1779              	.LCFI124:
+ 1780              		.cfi_def_cfa_register 13
+ 1781              		@ sp needed
+ 1782 0044 80BD     		pop	{r7, pc}
+ 1783              		.cfi_endproc
+ 1784              	.LFE24:
+ 1786              		.section	.text.pqcrystals_dilithium2_refpolyveck_pack_w1,"ax",%progbits
+ 1787              		.align	1
+ 1788              		.global	pqcrystals_dilithium2_refpolyveck_pack_w1
+ 1789              		.syntax unified
+ 1790              		.thumb
+ 1791              		.thumb_func
+ 1792              		.fpu softvfp
+ 1794              	pqcrystals_dilithium2_refpolyveck_pack_w1:
+ 1795              	.LFB25:
+ 384:polyvec.c     **** 
+ 385:polyvec.c     **** void polyveck_pack_w1(uint8_t r[K*POLYW1_PACKEDBYTES], const polyveck *w1) {
+ 1796              		.loc 1 385 76
+ 1797              		.cfi_startproc
+ 1798              		@ args = 0, pretend = 0, frame = 16
+ 1799              		@ frame_needed = 1, uses_anonymous_args = 0
+ 1800 0000 80B5     		push	{r7, lr}
+ 1801              	.LCFI125:
+ 1802              		.cfi_def_cfa_offset 8
+ 1803              		.cfi_offset 7, -8
+ 1804              		.cfi_offset 14, -4
+ 1805 0002 84B0     		sub	sp, sp, #16
+ 1806              	.LCFI126:
+ 1807              		.cfi_def_cfa_offset 24
+ 1808 0004 00AF     		add	r7, sp, #0
+ 1809              	.LCFI127:
+ 1810              		.cfi_def_cfa_register 7
+ 1811 0006 7860     		str	r0, [r7, #4]
+ 1812 0008 3960     		str	r1, [r7]
+ 386:polyvec.c     ****   unsigned int i;
+ 387:polyvec.c     **** 
+ 388:polyvec.c     ****   for(i = 0; i < K; ++i)
+ 1813              		.loc 1 388 9
+ 1814 000a 0023     		movs	r3, #0
+ 1815 000c FB60     		str	r3, [r7, #12]
+ 1816              		.loc 1 388 3
+ 1817 000e 11E0     		b	.L84
+ 1818              	.L85:
+ 389:polyvec.c     ****     polyw1_pack(&r[i*POLYW1_PACKEDBYTES], &w1->vec[i]);
+ 1819              		.loc 1 389 21 discriminator 3
+ 1820 0010 FA68     		ldr	r2, [r7, #12]
+ 1821 0012 1346     		mov	r3, r2
+ 1822 0014 5B00     		lsls	r3, r3, #1
+ 1823 0016 1344     		add	r3, r3, r2
+ 1824 0018 9B01     		lsls	r3, r3, #6
+ 1825 001a 1A46     		mov	r2, r3
+ 1826              		.loc 1 389 5 discriminator 3
+ 1827 001c 7B68     		ldr	r3, [r7, #4]
+ 1828 001e 9818     		adds	r0, r3, r2
+ 1829 0020 FB68     		ldr	r3, [r7, #12]
+ 1830 0022 9B02     		lsls	r3, r3, #10
+ 1831 0024 3A68     		ldr	r2, [r7]
+ 1832 0026 1344     		add	r3, r3, r2
+ 1833 0028 1946     		mov	r1, r3
+ 1834 002a FFF7FEFF 		bl	pqcrystals_dilithium2_refpolyw1_pack
+ 388:polyvec.c     ****     polyw1_pack(&r[i*POLYW1_PACKEDBYTES], &w1->vec[i]);
+ 1835              		.loc 1 388 21 discriminator 3
+ 1836 002e FB68     		ldr	r3, [r7, #12]
+ 1837 0030 0133     		adds	r3, r3, #1
+ 1838 0032 FB60     		str	r3, [r7, #12]
+ 1839              	.L84:
+ 388:polyvec.c     ****     polyw1_pack(&r[i*POLYW1_PACKEDBYTES], &w1->vec[i]);
+ 1840              		.loc 1 388 3 discriminator 1
+ 1841 0034 FB68     		ldr	r3, [r7, #12]
+ 1842 0036 032B     		cmp	r3, #3
+ 1843 0038 EAD9     		bls	.L85
+ 390:polyvec.c     **** }
+ 1844              		.loc 1 390 1
+ 1845 003a 00BF     		nop
+ 1846 003c 00BF     		nop
+ 1847 003e 1037     		adds	r7, r7, #16
+ 1848              	.LCFI128:
+ 1849              		.cfi_def_cfa_offset 8
+ 1850 0040 BD46     		mov	sp, r7
+ 1851              	.LCFI129:
+ 1852              		.cfi_def_cfa_register 13
+ 1853              		@ sp needed
+ 1854 0042 80BD     		pop	{r7, pc}
+ 1855              		.cfi_endproc
+ 1856              	.LFE25:
+ 1858              		.text
+ 1859              	.Letext0:
+ 1860              		.file 2 "/usr/lib/gcc/arm-none-eabi/10.3.1/include/stdint.h"
+ 1861              		.file 3 "poly.h"
+ 1862              		.file 4 "polyvec.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 polyvec.c
+     /tmp/ccLMTwur.s:16     .text.pqcrystals_dilithium2_refpolyvec_matrix_expand:0000000000000000 $t
+     /tmp/ccLMTwur.s:24     .text.pqcrystals_dilithium2_refpolyvec_matrix_expand:0000000000000000 pqcrystals_dilithium2_refpolyvec_matrix_expand
+     /tmp/ccLMTwur.s:111    .text.pqcrystals_dilithium2_refpolyvec_matrix_pointwise_montgomery:0000000000000000 $t
+     /tmp/ccLMTwur.s:118    .text.pqcrystals_dilithium2_refpolyvec_matrix_pointwise_montgomery:0000000000000000 pqcrystals_dilithium2_refpolyvec_matrix_pointwise_montgomery
+     /tmp/ccLMTwur.s:658    .text.pqcrystals_dilithium2_refpolyvecl_pointwise_acc_montgomery:0000000000000000 pqcrystals_dilithium2_refpolyvecl_pointwise_acc_montgomery
+     /tmp/ccLMTwur.s:182    .text.pqcrystals_dilithium2_refpolyvecl_uniform_eta:0000000000000000 $t
+     /tmp/ccLMTwur.s:189    .text.pqcrystals_dilithium2_refpolyvecl_uniform_eta:0000000000000000 pqcrystals_dilithium2_refpolyvecl_uniform_eta
+     /tmp/ccLMTwur.s:251    .text.pqcrystals_dilithium2_refpolyvecl_uniform_gamma1:0000000000000000 $t
+     /tmp/ccLMTwur.s:258    .text.pqcrystals_dilithium2_refpolyvecl_uniform_gamma1:0000000000000000 pqcrystals_dilithium2_refpolyvecl_uniform_gamma1
+     /tmp/ccLMTwur.s:324    .text.pqcrystals_dilithium2_refpolyvecl_reduce:0000000000000000 $t
+     /tmp/ccLMTwur.s:331    .text.pqcrystals_dilithium2_refpolyvecl_reduce:0000000000000000 pqcrystals_dilithium2_refpolyvecl_reduce
+     /tmp/ccLMTwur.s:386    .text.pqcrystals_dilithium2_refpolyvecl_add:0000000000000000 $t
+     /tmp/ccLMTwur.s:393    .text.pqcrystals_dilithium2_refpolyvecl_add:0000000000000000 pqcrystals_dilithium2_refpolyvecl_add
+     /tmp/ccLMTwur.s:458    .text.pqcrystals_dilithium2_refpolyvecl_ntt:0000000000000000 $t
+     /tmp/ccLMTwur.s:465    .text.pqcrystals_dilithium2_refpolyvecl_ntt:0000000000000000 pqcrystals_dilithium2_refpolyvecl_ntt
+     /tmp/ccLMTwur.s:520    .text.pqcrystals_dilithium2_refpolyvecl_invntt_tomont:0000000000000000 $t
+     /tmp/ccLMTwur.s:527    .text.pqcrystals_dilithium2_refpolyvecl_invntt_tomont:0000000000000000 pqcrystals_dilithium2_refpolyvecl_invntt_tomont
+     /tmp/ccLMTwur.s:582    .text.pqcrystals_dilithium2_refpolyvecl_pointwise_poly_montgomery:0000000000000000 $t
+     /tmp/ccLMTwur.s:589    .text.pqcrystals_dilithium2_refpolyvecl_pointwise_poly_montgomery:0000000000000000 pqcrystals_dilithium2_refpolyvecl_pointwise_poly_montgomery
+     /tmp/ccLMTwur.s:651    .text.pqcrystals_dilithium2_refpolyvecl_pointwise_acc_montgomery:0000000000000000 $t
+     /tmp/ccLMTwur.s:750    .text.pqcrystals_dilithium2_refpolyvecl_chknorm:0000000000000000 $t
+     /tmp/ccLMTwur.s:757    .text.pqcrystals_dilithium2_refpolyvecl_chknorm:0000000000000000 pqcrystals_dilithium2_refpolyvecl_chknorm
+     /tmp/ccLMTwur.s:824    .text.pqcrystals_dilithium2_refpolyveck_uniform_eta:0000000000000000 $t
+     /tmp/ccLMTwur.s:831    .text.pqcrystals_dilithium2_refpolyveck_uniform_eta:0000000000000000 pqcrystals_dilithium2_refpolyveck_uniform_eta
+     /tmp/ccLMTwur.s:893    .text.pqcrystals_dilithium2_refpolyveck_reduce:0000000000000000 $t
+     /tmp/ccLMTwur.s:900    .text.pqcrystals_dilithium2_refpolyveck_reduce:0000000000000000 pqcrystals_dilithium2_refpolyveck_reduce
+     /tmp/ccLMTwur.s:955    .text.pqcrystals_dilithium2_refpolyveck_caddq:0000000000000000 $t
+     /tmp/ccLMTwur.s:962    .text.pqcrystals_dilithium2_refpolyveck_caddq:0000000000000000 pqcrystals_dilithium2_refpolyveck_caddq
+     /tmp/ccLMTwur.s:1017   .text.pqcrystals_dilithium2_refpolyveck_add:0000000000000000 $t
+     /tmp/ccLMTwur.s:1024   .text.pqcrystals_dilithium2_refpolyveck_add:0000000000000000 pqcrystals_dilithium2_refpolyveck_add
+     /tmp/ccLMTwur.s:1089   .text.pqcrystals_dilithium2_refpolyveck_sub:0000000000000000 $t
+     /tmp/ccLMTwur.s:1096   .text.pqcrystals_dilithium2_refpolyveck_sub:0000000000000000 pqcrystals_dilithium2_refpolyveck_sub
+     /tmp/ccLMTwur.s:1161   .text.pqcrystals_dilithium2_refpolyveck_shiftl:0000000000000000 $t
+     /tmp/ccLMTwur.s:1168   .text.pqcrystals_dilithium2_refpolyveck_shiftl:0000000000000000 pqcrystals_dilithium2_refpolyveck_shiftl
+     /tmp/ccLMTwur.s:1223   .text.pqcrystals_dilithium2_refpolyveck_ntt:0000000000000000 $t
+     /tmp/ccLMTwur.s:1230   .text.pqcrystals_dilithium2_refpolyveck_ntt:0000000000000000 pqcrystals_dilithium2_refpolyveck_ntt
+     /tmp/ccLMTwur.s:1285   .text.pqcrystals_dilithium2_refpolyveck_invntt_tomont:0000000000000000 $t
+     /tmp/ccLMTwur.s:1292   .text.pqcrystals_dilithium2_refpolyveck_invntt_tomont:0000000000000000 pqcrystals_dilithium2_refpolyveck_invntt_tomont
+     /tmp/ccLMTwur.s:1347   .text.pqcrystals_dilithium2_refpolyveck_pointwise_poly_montgomery:0000000000000000 $t
+     /tmp/ccLMTwur.s:1354   .text.pqcrystals_dilithium2_refpolyveck_pointwise_poly_montgomery:0000000000000000 pqcrystals_dilithium2_refpolyveck_pointwise_poly_montgomery
+     /tmp/ccLMTwur.s:1416   .text.pqcrystals_dilithium2_refpolyveck_chknorm:0000000000000000 $t
+     /tmp/ccLMTwur.s:1423   .text.pqcrystals_dilithium2_refpolyveck_chknorm:0000000000000000 pqcrystals_dilithium2_refpolyveck_chknorm
+     /tmp/ccLMTwur.s:1490   .text.pqcrystals_dilithium2_refpolyveck_power2round:0000000000000000 $t
+     /tmp/ccLMTwur.s:1497   .text.pqcrystals_dilithium2_refpolyveck_power2round:0000000000000000 pqcrystals_dilithium2_refpolyveck_power2round
+     /tmp/ccLMTwur.s:1562   .text.pqcrystals_dilithium2_refpolyveck_decompose:0000000000000000 $t
+     /tmp/ccLMTwur.s:1569   .text.pqcrystals_dilithium2_refpolyveck_decompose:0000000000000000 pqcrystals_dilithium2_refpolyveck_decompose
+     /tmp/ccLMTwur.s:1634   .text.pqcrystals_dilithium2_refpolyveck_make_hint:0000000000000000 $t
+     /tmp/ccLMTwur.s:1641   .text.pqcrystals_dilithium2_refpolyveck_make_hint:0000000000000000 pqcrystals_dilithium2_refpolyveck_make_hint
+     /tmp/ccLMTwur.s:1715   .text.pqcrystals_dilithium2_refpolyveck_use_hint:0000000000000000 $t
+     /tmp/ccLMTwur.s:1722   .text.pqcrystals_dilithium2_refpolyveck_use_hint:0000000000000000 pqcrystals_dilithium2_refpolyveck_use_hint
+     /tmp/ccLMTwur.s:1787   .text.pqcrystals_dilithium2_refpolyveck_pack_w1:0000000000000000 $t
+     /tmp/ccLMTwur.s:1794   .text.pqcrystals_dilithium2_refpolyveck_pack_w1:0000000000000000 pqcrystals_dilithium2_refpolyveck_pack_w1
+
+UNDEFINED SYMBOLS
+pqcrystals_dilithium2_refpoly_uniform
+pqcrystals_dilithium2_refpoly_uniform_eta
+pqcrystals_dilithium2_refpoly_uniform_gamma1
+pqcrystals_dilithium2_refpoly_reduce
+pqcrystals_dilithium2_refpoly_add
+pqcrystals_dilithium2_refpoly_ntt
+pqcrystals_dilithium2_refpoly_invntt_tomont
+pqcrystals_dilithium2_refpoly_pointwise_montgomery
+pqcrystals_dilithium2_refpoly_chknorm
+pqcrystals_dilithium2_refpoly_caddq
+pqcrystals_dilithium2_refpoly_sub
+pqcrystals_dilithium2_refpoly_shiftl
+pqcrystals_dilithium2_refpoly_power2round
+pqcrystals_dilithium2_refpoly_decompose
+pqcrystals_dilithium2_refpoly_make_hint
+pqcrystals_dilithium2_refpoly_use_hint
+pqcrystals_dilithium2_refpolyw1_pack
