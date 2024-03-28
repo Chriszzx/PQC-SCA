@@ -1,0 +1,265 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"jsonFile" : "directory-.-Debug-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "ref",
+					"jsonFile" : "directory-ref-Debug-f589bede775b0c62f184.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "ref",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "dilithium",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "aes256ctr_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-aes256ctr_ref-Debug-b05d8ac8c6af37add76c.json",
+					"name" : "aes256ctr_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "dilithium2_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-dilithium2_ref-Debug-e3184d8804ef6434ed44.json",
+					"name" : "dilithium2_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "dilithium2_ref_copy::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-dilithium2_ref_copy-Debug-326fdc1a23b659d697cf.json",
+					"name" : "dilithium2_ref_copy",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "dilithium2aes_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-dilithium2aes_ref-Debug-a92510e09896743520e3.json",
+					"name" : "dilithium2aes_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "dilithium3_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-dilithium3_ref-Debug-c61d0b73b948743e58a2.json",
+					"name" : "dilithium3_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "dilithium3aes_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-dilithium3aes_ref-Debug-5d5f73d622c760df5cf4.json",
+					"name" : "dilithium3aes_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "dilithium5_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-dilithium5_ref-Debug-5746fd77dc1b6552a208.json",
+					"name" : "dilithium5_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "dilithium5aes_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-dilithium5aes_ref-Debug-6d02da71bc5f2138cc40.json",
+					"name" : "dilithium5aes_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "fips202_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-fips202_ref-Debug-3b62092beed277f18301.json",
+					"name" : "fips202_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_dilithium2_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_dilithium2_ref-Debug-8d983920d9cf5c507a51.json",
+					"name" : "test_dilithium2_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_dilithium2_ref_copy::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_dilithium2_ref_copy-Debug-a7bb3f76748740073f38.json",
+					"name" : "test_dilithium2_ref_copy",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_dilithium2aes_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_dilithium2aes_ref-Debug-649f4b6bedc98ee905c6.json",
+					"name" : "test_dilithium2aes_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_dilithium3_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_dilithium3_ref-Debug-db6ad6a4b36ad8da49a2.json",
+					"name" : "test_dilithium3_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_dilithium3aes_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_dilithium3aes_ref-Debug-e013b40bb993fdac0204.json",
+					"name" : "test_dilithium3aes_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_dilithium5_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_dilithium5_ref-Debug-6543c1c573a3defd6156.json",
+					"name" : "test_dilithium5_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_dilithium5aes_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_dilithium5aes_ref-Debug-147d6dfb9bbd334b043e.json",
+					"name" : "test_dilithium5aes_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_vectors2_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_vectors2_ref-Debug-4588f0faa80a2aec5079.json",
+					"name" : "test_vectors2_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_vectors2aes_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_vectors2aes_ref-Debug-7aab6d2a7695c8256168.json",
+					"name" : "test_vectors2aes_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_vectors3_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_vectors3_ref-Debug-eb7050a6ee5f459057b7.json",
+					"name" : "test_vectors3_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_vectors3aes_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_vectors3aes_ref-Debug-f26263654c3ef55fcaa2.json",
+					"name" : "test_vectors3aes_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_vectors5_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_vectors5_ref-Debug-bd69607581cdd1d37cdc.json",
+					"name" : "test_vectors5_ref",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "test_vectors5aes_ref::@44be5e14ce216f4b2c35",
+					"jsonFile" : "target-test_vectors5aes_ref-Debug-e4813343de5bf930e128.json",
+					"name" : "test_vectors5aes_ref",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "D:/Github/dilithium/build",
+		"source" : "D:/Github/dilithium"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

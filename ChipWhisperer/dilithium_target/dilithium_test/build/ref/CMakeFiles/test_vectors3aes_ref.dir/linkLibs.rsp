@@ -1,0 +1,1 @@
+ libdilithium3aes_ref.a libfips202_ref.a libaes256ctr_ref.a -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32 
