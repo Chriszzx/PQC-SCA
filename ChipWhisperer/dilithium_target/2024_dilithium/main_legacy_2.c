@@ -7,16 +7,13 @@
 #include "sign.h"
 #include "polyvec.h"
 #include "packing.h"
-#include "randombytes.h"
-#include "fips202.h"
-#include "symmetric.h"
 
 #define MLEN 32
 #define NTESTS 1
 
 //这是官方的消息用来验证
 uint8_t m[MLEN];
-size_t mlen,smlen;
+size_t smlen;
 //uint8_t m[MLEN] = {0}; //这里不要修改
 uint8_t sm[MLEN + CRYPTO_BYTES]; //签名后的 2420 + MLEN = 2452
 uint8_t m2[MLEN + CRYPTO_BYTES];
@@ -31,79 +28,17 @@ uint8_t key[SEEDBYTES];
 polyveck t1,h,t0,s2;
 polyvecl z,s1,temp;
 poly cp;
-uint8_t nonce;
-uint8_t sig[MLEN + CRYPTO_BYTES];
 
 //uint8_t SEED[SEEDBYTES] = {0x3e,0x80,0x9e,0xc8,0xdd,0x0f,0xec,0x0d,0x91,0x1a,0x4e,0x3f,0xac,0x20,0xf7,0x0f,0xbb,0x12,0x8c,0x5d,0xe9,0x4d,0xc7,0x18,0x4c,0xa7,0x31,0x0a,0xe9,0x15,0x7a,0x98};
 
 uint8_t get_msg(uint8_t* data, uint8_t dlen)
 {
   unsigned int i;
-  uint8_t md[32];
   //crypto_sign_keypair(pk,sk,SEED);
-  //crypto_sign(sm,&smlen, data,MLEN,sk);
-  nonce = data[32];
-  memcpy(md,data,32);
-
-  mlen = MLEN;
-  for(i = 0; i < mlen; ++i)
-    sm[CRYPTO_BYTES + mlen - 1 - i] = md[mlen - 1 - i];
-
-
-  unsigned int n;
-  uint8_t seedbuf[3*SEEDBYTES + 2*CRHBYTES];
-  uint8_t *rho, *tr, *key, *mu, *rhoprime;
-  polyvecl mat[K], s1, y, z;
-  polyveck t0, s2, w1, w0, h;
-  poly cp;
-  keccak_state state;
-  rho = seedbuf;
-  tr = rho + SEEDBYTES;
-  key = tr + SEEDBYTES;
-  mu = key + SEEDBYTES;
-  rhoprime = mu + CRHBYTES;
-  unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
-
-  /* Compute CRH(tr, msg) */
-  shake256_init(&state);
-  shake256_absorb(&state, tr, SEEDBYTES);
-  shake256_absorb(&state, sm + CRYPTO_BYTES, mlen);
-  shake256_finalize(&state);
-  shake256_squeeze(mu, CRHBYTES, &state);
-  shake256(rhoprime, CRHBYTES, key, SEEDBYTES +CRHBYTES);
-  /* Expand matrix and transform vectors */
-  polyvec_matrix_expand(mat, rho);
-  polyvecl_ntt(&s1);
-  polyveck_ntt(&s2);
-  polyveck_ntt(&t0);
-
-  /* Sample intermediate vector y */
-  polyvecl_uniform_gamma1(&y, rhoprime, nonce++);
-  /* Matrix-vector multiplication */
-  z = y;
-  polyvecl_ntt(&z);
-  polyvec_matrix_pointwise_montgomery(&w1, mat, &z);
-  polyveck_reduce(&w1);
-  polyveck_invntt_tomont(&w1);
-  /* Decompose w and call the random oracle */
-  polyveck_caddq(&w1);
-  polyveck_decompose(&w1, &w0, &w1);
-  polyveck_pack_w1(sig, &w1);
-
-  shake256_init(&state);
-  shake256_absorb(&state, mu, CRHBYTES);
-  shake256_absorb(&state, sig, K*POLYW1_PACKEDBYTES);
-  shake256_finalize(&state);
-  shake256_squeeze(sig, SEEDBYTES, &state);
-  poly_challenge(&cp, sig);
-  poly_ntt(&cp);
-
-  /* Compute z, reject if it reveals secret */
-  trigger_high();
-  polyvecl_pointwise_poly_montgomery(&z, &cp, &s1);
-  trigger_low();
-
-  simpleserial_put('r', 32, sig);
+  crypto_sign(sm,&smlen, data,MLEN,sk);
+  for(i = 0; i < SEEDBYTES; ++i)
+    c[i] = sm[i];
+  simpleserial_put('r', 32, c);
   return 0;
 }
 
@@ -118,8 +53,7 @@ int main(void)
 	trigger_setup();	
 	simpleserial_init();
 
-  simpleserial_addcmd('p',33,get_msg);
-  //simpleserial_addcmd('k',1,get_nonce);
+  simpleserial_addcmd('p',32,get_msg);
 
 	while(1)
 		simpleserial_get();
