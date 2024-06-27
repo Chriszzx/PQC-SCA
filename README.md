@@ -1,4 +1,4 @@
-# SCA-Dilithium
-SCA research on CRYSTALS-Dilithium
+# PQC-SCA
+SCA research on PQC
 
 Files are saved for different use.
