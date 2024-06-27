@@ -1,0 +1,262 @@
+   1              		.cpu cortex-m4
+   2              		.eabi_attribute 20, 1
+   3              		.eabi_attribute 21, 1
+   4              		.eabi_attribute 23, 3
+   5              		.eabi_attribute 24, 1
+   6              		.eabi_attribute 25, 1
+   7              		.eabi_attribute 26, 1
+   8              		.eabi_attribute 30, 6
+   9              		.eabi_attribute 34, 1
+  10              		.eabi_attribute 18, 4
+  11              		.file	"randombytes.c"
+  12              		.text
+  13              	.Ltext0:
+  14              		.cfi_sections	.debug_frame
+  15              		.section	.rodata
+  16              		.align	2
+  17              	.LC0:
+  18 0000 2F646576 		.ascii	"/dev/urandom\000"
+  18      2F757261 
+  18      6E646F6D 
+  18      00
+  19              		.section	.text.randombytes,"ax",%progbits
+  20              		.align	1
+  21              		.global	randombytes
+  22              		.arch armv7e-m
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  26              		.fpu softvfp
+  28              	randombytes:
+  29              	.LFB0:
+  30              		.file 1 "randombytes.c"
+   1:randombytes.c **** #include <stddef.h>
+   2:randombytes.c **** #include <stdint.h>
+   3:randombytes.c **** #include <stdlib.h>
+   4:randombytes.c **** #include "randombytes.h"
+   5:randombytes.c **** 
+   6:randombytes.c **** #ifdef _WIN32
+   7:randombytes.c **** #include <windows.h>
+   8:randombytes.c **** #include <wincrypt.h>
+   9:randombytes.c **** #else
+  10:randombytes.c **** #include <fcntl.h>
+  11:randombytes.c **** #include <errno.h>
+  12:randombytes.c **** #ifdef __linux__
+  13:randombytes.c **** #define _GNU_SOURCE
+  14:randombytes.c **** #include <unistd.h>
+  15:randombytes.c **** #include <sys/syscall.h>
+  16:randombytes.c **** #else
+  17:randombytes.c **** #include <unistd.h>
+  18:randombytes.c **** #endif
+  19:randombytes.c **** #endif
+  20:randombytes.c **** 
+  21:randombytes.c **** #ifdef _WIN32
+  22:randombytes.c **** void randombytes(uint8_t *out, size_t outlen) {
+  23:randombytes.c ****   HCRYPTPROV ctx;
+  24:randombytes.c ****   size_t len;
+  25:randombytes.c **** 
+  26:randombytes.c ****   if(!CryptAcquireContext(&ctx, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
+  27:randombytes.c ****     abort();
+  28:randombytes.c **** 
+  29:randombytes.c ****   while(outlen > 0) {
+  30:randombytes.c ****     len = (outlen > 1048576) ? 1048576 : outlen;
+  31:randombytes.c ****     if(!CryptGenRandom(ctx, len, (BYTE *)out))
+  32:randombytes.c ****       abort();
+  33:randombytes.c **** 
+  34:randombytes.c ****     out += len;
+  35:randombytes.c ****     outlen -= len;
+  36:randombytes.c ****   }
+  37:randombytes.c **** 
+  38:randombytes.c ****   if(!CryptReleaseContext(ctx, 0))
+  39:randombytes.c ****     abort();
+  40:randombytes.c **** }
+  41:randombytes.c **** #elif defined(__linux__) && defined(SYS_getrandom)
+  42:randombytes.c **** void randombytes(uint8_t *out, size_t outlen) {
+  43:randombytes.c ****   ssize_t ret;
+  44:randombytes.c **** 
+  45:randombytes.c ****   while(outlen > 0) {
+  46:randombytes.c ****     ret = syscall(SYS_getrandom, out, outlen, 0);
+  47:randombytes.c ****     if(ret == -1 && errno == EINTR)
+  48:randombytes.c ****       continue;
+  49:randombytes.c ****     else if(ret == -1)
+  50:randombytes.c ****       abort();
+  51:randombytes.c **** 
+  52:randombytes.c ****     out += ret;
+  53:randombytes.c ****     outlen -= ret;
+  54:randombytes.c ****   }
+  55:randombytes.c **** }
+  56:randombytes.c **** #else
+  57:randombytes.c **** void randombytes(uint8_t *out, size_t outlen) {
+  31              		.loc 1 57 47
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 16
+  34              		@ frame_needed = 1, uses_anonymous_args = 0
+  35 0000 80B5     		push	{r7, lr}
+  36              	.LCFI0:
+  37              		.cfi_def_cfa_offset 8
+  38              		.cfi_offset 7, -8
+  39              		.cfi_offset 14, -4
+  40 0002 84B0     		sub	sp, sp, #16
+  41              	.LCFI1:
+  42              		.cfi_def_cfa_offset 24
+  43 0004 00AF     		add	r7, sp, #0
+  44              	.LCFI2:
+  45              		.cfi_def_cfa_register 7
+  46 0006 7860     		str	r0, [r7, #4]
+  47 0008 3960     		str	r1, [r7]
+  58:randombytes.c ****   static int fd = -1;
+  59:randombytes.c ****   ssize_t ret;
+  60:randombytes.c **** 
+  61:randombytes.c ****   while(fd == -1) {
+  48              		.loc 1 61 8
+  49 000a 19E0     		b	.L2
+  50              	.L4:
+  62:randombytes.c ****     fd = open("/dev/urandom", O_RDONLY);
+  51              		.loc 1 62 10
+  52 000c 0021     		movs	r1, #0
+  53 000e 2448     		ldr	r0, .L9
+  54 0010 FFF7FEFF 		bl	open
+  55 0014 0346     		mov	r3, r0
+  56              		.loc 1 62 8
+  57 0016 234A     		ldr	r2, .L9+4
+  58 0018 1360     		str	r3, [r2]
+  63:randombytes.c ****     if(fd == -1 && errno == EINTR)
+  59              		.loc 1 63 11
+  60 001a 224B     		ldr	r3, .L9+4
+  61 001c 1B68     		ldr	r3, [r3]
+  62              		.loc 1 63 7
+  63 001e B3F1FF3F 		cmp	r3, #-1
+  64 0022 06D1     		bne	.L3
+  65              		.loc 1 63 20 discriminator 1
+  66 0024 FFF7FEFF 		bl	__errno
+  67 0028 0346     		mov	r3, r0
+  68 002a 1B68     		ldr	r3, [r3]
+  69              		.loc 1 63 17 discriminator 1
+  70 002c 042B     		cmp	r3, #4
+  71 002e 00D1     		bne	.L3
+  64:randombytes.c ****       continue;
+  72              		.loc 1 64 7
+  73 0030 06E0     		b	.L2
+  74              	.L3:
+  65:randombytes.c ****     else if(fd == -1)
+  75              		.loc 1 65 16
+  76 0032 1C4B     		ldr	r3, .L9+4
+  77 0034 1B68     		ldr	r3, [r3]
+  78              		.loc 1 65 12
+  79 0036 B3F1FF3F 		cmp	r3, #-1
+  80 003a 01D1     		bne	.L2
+  66:randombytes.c ****       abort();
+  81              		.loc 1 66 7
+  82 003c FFF7FEFF 		bl	abort
+  83              	.L2:
+  61:randombytes.c ****     fd = open("/dev/urandom", O_RDONLY);
+  84              		.loc 1 61 12
+  85 0040 184B     		ldr	r3, .L9+4
+  86 0042 1B68     		ldr	r3, [r3]
+  61:randombytes.c ****     fd = open("/dev/urandom", O_RDONLY);
+  87              		.loc 1 61 8
+  88 0044 B3F1FF3F 		cmp	r3, #-1
+  89 0048 E0D0     		beq	.L4
+  67:randombytes.c ****   }
+  68:randombytes.c **** 
+  69:randombytes.c ****   while(outlen > 0) {
+  90              		.loc 1 69 8
+  91 004a 20E0     		b	.L5
+  92              	.L8:
+  70:randombytes.c ****     ret = read(fd, out, outlen);
+  93              		.loc 1 70 11
+  94 004c 154B     		ldr	r3, .L9+4
+  95 004e 1B68     		ldr	r3, [r3]
+  96 0050 3A68     		ldr	r2, [r7]
+  97 0052 7968     		ldr	r1, [r7, #4]
+  98 0054 1846     		mov	r0, r3
+  99 0056 FFF7FEFF 		bl	read
+ 100 005a F860     		str	r0, [r7, #12]
+  71:randombytes.c ****     if(ret == -1 && errno == EINTR)
+ 101              		.loc 1 71 7
+ 102 005c FB68     		ldr	r3, [r7, #12]
+ 103 005e B3F1FF3F 		cmp	r3, #-1
+ 104 0062 06D1     		bne	.L6
+ 105              		.loc 1 71 21 discriminator 1
+ 106 0064 FFF7FEFF 		bl	__errno
+ 107 0068 0346     		mov	r3, r0
+ 108 006a 1B68     		ldr	r3, [r3]
+ 109              		.loc 1 71 18 discriminator 1
+ 110 006c 042B     		cmp	r3, #4
+ 111 006e 00D1     		bne	.L6
+  72:randombytes.c ****       continue;
+ 112              		.loc 1 72 7
+ 113 0070 0DE0     		b	.L5
+ 114              	.L6:
+  73:randombytes.c ****     else if(ret == -1)
+ 115              		.loc 1 73 12
+ 116 0072 FB68     		ldr	r3, [r7, #12]
+ 117 0074 B3F1FF3F 		cmp	r3, #-1
+ 118 0078 01D1     		bne	.L7
+  74:randombytes.c ****       abort();
+ 119              		.loc 1 74 7
+ 120 007a FFF7FEFF 		bl	abort
+ 121              	.L7:
+  75:randombytes.c **** 
+  76:randombytes.c ****     out += ret;
+ 122              		.loc 1 76 9
+ 123 007e FB68     		ldr	r3, [r7, #12]
+ 124 0080 7A68     		ldr	r2, [r7, #4]
+ 125 0082 1344     		add	r3, r3, r2
+ 126 0084 7B60     		str	r3, [r7, #4]
+  77:randombytes.c ****     outlen -= ret;
+ 127              		.loc 1 77 12
+ 128 0086 FB68     		ldr	r3, [r7, #12]
+ 129 0088 3A68     		ldr	r2, [r7]
+ 130 008a D31A     		subs	r3, r2, r3
+ 131 008c 3B60     		str	r3, [r7]
+ 132              	.L5:
+  69:randombytes.c ****     ret = read(fd, out, outlen);
+ 133              		.loc 1 69 8
+ 134 008e 3B68     		ldr	r3, [r7]
+ 135 0090 002B     		cmp	r3, #0
+ 136 0092 DBD1     		bne	.L8
+  78:randombytes.c ****   }
+  79:randombytes.c **** }
+ 137              		.loc 1 79 1
+ 138 0094 00BF     		nop
+ 139 0096 00BF     		nop
+ 140 0098 1037     		adds	r7, r7, #16
+ 141              	.LCFI3:
+ 142              		.cfi_def_cfa_offset 8
+ 143 009a BD46     		mov	sp, r7
+ 144              	.LCFI4:
+ 145              		.cfi_def_cfa_register 13
+ 146              		@ sp needed
+ 147 009c 80BD     		pop	{r7, pc}
+ 148              	.L10:
+ 149 009e 00BF     		.align	2
+ 150              	.L9:
+ 151 00a0 00000000 		.word	.LC0
+ 152 00a4 00000000 		.word	fd.0
+ 153              		.cfi_endproc
+ 154              	.LFE0:
+ 156              		.data
+ 157              		.align	2
+ 160              	fd.0:
+ 161 0000 FFFFFFFF 		.word	-1
+ 162              		.text
+ 163              	.Letext0:
+ 164              		.file 2 "/usr/lib/gcc/arm-none-eabi/10.3.1/include/stddef.h"
+ 165              		.file 3 "/usr/lib/gcc/arm-none-eabi/10.3.1/include/stdint.h"
+ 166              		.file 4 "/usr/include/newlib/sys/_types.h"
+ 167              		.file 5 "/usr/include/newlib/sys/types.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 randombytes.c
+     /tmp/ccsSnXHw.s:16     .rodata:0000000000000000 $d
+     /tmp/ccsSnXHw.s:20     .text.randombytes:0000000000000000 $t
+     /tmp/ccsSnXHw.s:28     .text.randombytes:0000000000000000 randombytes
+     /tmp/ccsSnXHw.s:151    .text.randombytes:00000000000000a0 $d
+     /tmp/ccsSnXHw.s:160    .data:0000000000000000 fd.0
+     /tmp/ccsSnXHw.s:157    .data:0000000000000000 $d
+
+UNDEFINED SYMBOLS
+open
+__errno
+abort
+read
