@@ -1,2 +1,0 @@
-C:\msys64\ucrt64\bin\ar.exe qc libdilithium3_ref.a CMakeFiles/dilithium3_ref.dir/sign.c.obj CMakeFiles/dilithium3_ref.dir/packing.c.obj CMakeFiles/dilithium3_ref.dir/polyvec.c.obj CMakeFiles/dilithium3_ref.dir/poly.c.obj CMakeFiles/dilithium3_ref.dir/ntt.c.obj CMakeFiles/dilithium3_ref.dir/reduce.c.obj CMakeFiles/dilithium3_ref.dir/rounding.c.obj "CMakeFiles/dilithium3_ref.dir/symmetric-shake.c.obj"
-C:\msys64\ucrt64\bin\ranlib.exe libdilithium3_ref.a

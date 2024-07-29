@@ -1,2 +1,0 @@
-C:\msys64\ucrt64\bin\ar.exe qc libaes256ctr_ref.a CMakeFiles/aes256ctr_ref.dir/aes256ctr.c.obj
-C:\msys64\ucrt64\bin\ranlib.exe libaes256ctr_ref.a

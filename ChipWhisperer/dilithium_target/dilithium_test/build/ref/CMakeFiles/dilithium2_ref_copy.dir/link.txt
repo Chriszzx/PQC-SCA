@@ -1,2 +1,0 @@
-C:\msys64\ucrt64\bin\ar.exe qc libdilithium2_ref_copy.a CMakeFiles/dilithium2_ref_copy.dir/sign.c.obj CMakeFiles/dilithium2_ref_copy.dir/packing.c.obj CMakeFiles/dilithium2_ref_copy.dir/polyvec.c.obj CMakeFiles/dilithium2_ref_copy.dir/poly.c.obj CMakeFiles/dilithium2_ref_copy.dir/ntt.c.obj CMakeFiles/dilithium2_ref_copy.dir/reduce.c.obj CMakeFiles/dilithium2_ref_copy.dir/rounding.c.obj "CMakeFiles/dilithium2_ref_copy.dir/symmetric-shake.c.obj"
-C:\msys64\ucrt64\bin\ranlib.exe libdilithium2_ref_copy.a
